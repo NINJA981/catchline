@@ -1,0 +1,17 @@
+node_modules/
+.output/
+.wxt/
+dist/
+site/dist/
+coverage/
+test-results/
+playwright-report/
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*
+web-ext-artifacts/
+.impeccable/config.local.json
+.impeccable/review/
+.impeccable/mocks/

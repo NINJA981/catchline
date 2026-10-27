@@ -251,3 +251,23 @@ the card is placed below the marker (`tetherCurve` in `src/core/geometry.ts`, se
 web app); the open-marker ring becomes a tall pill on large claims (`.cl-ring` in
 `src/overlay/overlay.css`); the popup skeleton does not match the loaded layout; the landing popup mock
 omits the rollup line. No code was changed in this round.
+
+### QA round 1, re-run (2026-10-28)
+
+Re-run on a fresh build of the **current working tree**. That tree includes uncommitted fix work from
+after the first run (41 modified files, plus the untracked `scripts/check-size.mjs`, `src/core/steps.ts`
+and `tests/unit/steps.test.ts`). This re-run did not commit or change those files. The captures in
+`docs/screenshots/qa-r1/` were overwritten. They now include `host-dark-*`, `site-app-error-*`,
+`site-app-many-375-*`, `site-app-notfound-768-*` and `site-landing-reduced-1440-*`.
+
+Verdict: **FAIL**. The rubric average is 7.2 and there is one hard fail.
+- **Hard fail:** the landing page scrolls sideways at 375 px (`scrollWidth` 456, `scrollX` reaches 81).
+  The uncommitted change to `site/index.html:73` wraps "next to the claim." in `.nowrap`. The same
+  change also cuts off the hero H1 at 1440 px, where the specimen frame covers it ("next to the c").
+- **Fixed since the first run:** the Show all chips no longer repeat, the popup skeleton now matches the
+  loaded layout, and the landing popup mock now shows the rollup line.
+- **Still open:** the marker hit targets go stale after the host page's layout changes, and only
+  scroll and resize move them (`src/overlay/markers-layer.ts:82-83`). The popup's catch rows hide chips
+  that don't fit without saying so (`.pop-row__chips` in `src/ui/pages.css:201`). The expanded Show all
+  entry is drawn as two separate boxes. An empty submit in the web app shows its error below the fold.
+  The open ring and the rest underline sit off the glyph on large or superscript markers.

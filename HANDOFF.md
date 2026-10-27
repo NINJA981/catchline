@@ -239,3 +239,15 @@ typecheck were re-run after it (see commit).
 3. Pixel golden for the share PNG; Firefox manual smoke; F12 if wanted.
 4. DESIGN.md still matches the built UI where checked (tokens, states, flight timings); the Appendix B
    unchecked boxes (poster, OG card, landing screenshots) belong to the site and capture work.
+
+## QA round 1: design critic (2026-10-27)
+
+Fresh captures of the extension (popup states, overlay card, Show all, options, welcome, flight and
+reduced-motion strips) and the site (landing, `/app/` empty, sample and open card) at 375, 768 and 1440
+px in light and dark are in `docs/screenshots/qa-r1/`. Verdict: REVISE, rubric average about 8.4
+(DESIGN_BIBLE section 9), no hard fails, criterion 6 (component craft) below 8. Open design defects, in
+order: the Show all expanded entry repeats its chips (`src/overlay/ShowAll.tsx`); the tether loops when
+the card is placed below the marker (`tetherCurve` in `src/core/geometry.ts`, seen at 375 and 768 in the
+web app); the open-marker ring becomes a tall pill on large claims (`.cl-ring` in
+`src/overlay/overlay.css`); the popup skeleton does not match the loaded layout; the landing popup mock
+omits the rollup line. No code was changed in this round.

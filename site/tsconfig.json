@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@catchline/core": ["../src/core/index.ts"],
+      "@catchline/overlay-model": ["../src/overlay/model.ts"],
+      "@catchline/share-render": ["../src/overlay/share-render.ts"]
+    }
+  },
+  "include": [
+    "src",
+    "tests",
+    "scripts",
+    "*.ts",
+    "../src/core/**/*.ts",
+    "../src/overlay/model.ts",
+    "../src/overlay/share-render.ts"
+  ]
+}

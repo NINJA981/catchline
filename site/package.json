@@ -1,0 +1,40 @@
+{
+  "name": "catchline-site",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Catchline landing page and installable offline web app (/app). Static Vite build; imports the engine from ../src/core.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.34.6",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check:budget": "node scripts/check-budget.mjs",
+    "check:network": "node scripts/check-network.mjs",
+    "assets": "node scripts/make-assets.mjs",
+    "test:e2e": "vite build && playwright test",
+    "lint:css": "vitest run tests/guards.test.ts"
+  },
+  "devDependencies": {
+    "@fontsource-variable/schibsted-grotesk": "5.3.0",
+    "@fontsource/commit-mono": "5.3.0",
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "happy-dom": "21.0.4",
+    "lucide-static": "1.62.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

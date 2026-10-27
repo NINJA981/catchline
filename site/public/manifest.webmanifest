@@ -1,0 +1,23 @@
+{
+  "id": "./app/",
+  "name": "Catchline",
+  "short_name": "Catchline",
+  "description": "Paste a promo page and see the catch next to every claim. Runs entirely in your browser. Nothing is uploaded.",
+  "start_url": "./app/",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fafcfe",
+  "theme_color": "#fafcfe",
+  "categories": ["utilities", "shopping"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

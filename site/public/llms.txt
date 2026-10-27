@@ -1,0 +1,12 @@
+# Catchline
+
+> A free, open-source browser extension (Chrome, Edge, Firefox) that matches the *, †, ‡ and ¹ markers on a promo page to their footnotes and lists the fees and conditions next to the claim. It runs entirely in the browser and makes no network requests.
+
+## Try it
+
+- [Web app](./app/): paste promo text or page HTML and see the catches. Runs in the browser, works offline, uploads nothing.
+
+## Notes
+
+- Licensed MIT. No accounts, analytics or telemetry.
+- Accuracy on real pages has not been measured yet; the page says so instead of quoting a number.

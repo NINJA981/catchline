@@ -1,0 +1,492 @@
+/* Web app (/app/). Mode: Operate. Mobile first at 375, then 768 and 1440; 44px touch targets. */
+
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  height: 56px;
+  background: var(--cl-ledger-paper);
+  border-bottom: 1px solid var(--cl-rule);
+}
+
+.app-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  gap: var(--sp-2);
+}
+
+.app-bar__tail {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  color: var(--cl-ink);
+  text-decoration: none;
+}
+
+.brand:hover {
+  color: var(--cl-ink);
+}
+
+.brand__mark {
+  fill: none;
+  stroke: var(--cl-prussian);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand__mark circle {
+  fill: var(--cl-prussian);
+  stroke: none;
+}
+
+.brand__name {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.app-main {
+  display: grid;
+  gap: var(--sp-8);
+  padding-block: var(--sp-8) var(--sp-12);
+}
+
+@media (min-width: 1200px) {
+  .app-main {
+    gap: var(--sp-10);
+    padding-block: var(--sp-12) var(--sp-16);
+  }
+}
+
+.intro {
+  display: grid;
+  gap: var(--sp-3);
+  max-width: 68ch;
+}
+
+.privacy-line {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--cl-ink-muted);
+}
+
+/* Input panel. */
+.input {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--radius-lg);
+  background: var(--cl-sheet);
+  box-shadow: var(--cl-shadow-e1);
+}
+
+#source {
+  width: 100%;
+  min-height: 176px;
+  padding: var(--sp-3);
+  border: 1px solid var(--cl-rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--cl-ledger-paper);
+  color: var(--cl-ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0;
+  resize: vertical;
+  tab-size: 2;
+}
+
+#source::placeholder {
+  color: var(--cl-ink-subtle);
+}
+
+.input__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.input__actions #scan {
+  flex: 1 1 100%;
+}
+
+@media (min-width: 640px) {
+  .input__actions #scan {
+    flex: 0 0 auto;
+  }
+}
+
+.btn[data-busy] {
+  cursor: progress;
+}
+
+.file-btn {
+  cursor: pointer;
+}
+
+.file-btn:focus-within {
+  outline: 2px solid var(--cl-prussian);
+  outline-offset: 2px;
+}
+
+@media (min-width: 900px) {
+  .input {
+    padding: var(--sp-6);
+  }
+
+  #source {
+    min-height: 208px;
+  }
+}
+
+/* Samples. */
+.samples > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.samples > p {
+  margin-top: var(--sp-1);
+}
+
+.sample-list {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+@media (min-width: 768px) {
+  .sample-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .sample-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.sample {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-0_5);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--cl-sheet);
+  box-shadow: var(--cl-shadow-e1);
+  color: var(--cl-ink);
+  text-align: left;
+  transition: background-color var(--dur-1);
+}
+
+.sample:hover {
+  background: var(--cl-sheet-2);
+}
+
+.sample .t-muted {
+  color: var(--cl-ink-muted);
+}
+
+/* Result. */
+.result {
+  display: grid;
+  gap: var(--sp-6);
+  scroll-margin-top: 72px;
+}
+
+.result:empty {
+  display: none;
+}
+
+.result__head {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.result__summary {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.result__summary .fig {
+  font-size: 26px;
+}
+
+.result__grid {
+  display: grid;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .result__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    column-gap: var(--sp-8);
+  }
+}
+
+.result__list {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.catch-list > li + li {
+  border-top: 1px solid var(--cl-rule);
+}
+
+.catch-row--button {
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--cl-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-1);
+}
+
+.catch-row--button:hover {
+  background: var(--cl-sheet-2);
+}
+
+.catch-row--button[aria-current='true'] {
+  background: var(--cl-sheet-2);
+  box-shadow: inset 2px 0 0 var(--cl-prussian);
+}
+
+.catch-row--button .t-muted {
+  color: var(--cl-ink-muted);
+}
+
+.others > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+/* Workspace: the page as text, the card, the tether. */
+.stage {
+  position: relative;
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.reader {
+  border-radius: var(--radius-lg);
+  background: var(--cl-sheet);
+  box-shadow: var(--cl-shadow-e1);
+  overflow: clip;
+}
+
+.reader__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: 44px;
+  padding: var(--sp-1) var(--sp-4);
+  background: var(--cl-ledger-paper);
+  border-bottom: 1px solid var(--cl-rule);
+}
+
+.reader__bar .t-label {
+  white-space: nowrap;
+}
+
+.reader__bar .t-caption {
+  text-align: right;
+}
+
+.reader__flow {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+}
+
+.rd {
+  position: relative;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.005em;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+  border-radius: var(--radius-xs);
+}
+
+.rd--heading {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 550;
+  letter-spacing: -0.012em;
+  margin-top: var(--sp-2);
+}
+
+.rd--item {
+  padding-left: var(--sp-4);
+}
+
+.rd--item::before {
+  content: '';
+  position: absolute;
+  left: var(--sp-1);
+  top: 10px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--cl-ink-subtle);
+}
+
+.rd--small {
+  color: var(--cl-ink-subtle);
+  letter-spacing: 0;
+}
+
+.rd--open {
+  background: var(--cl-prussian-wash);
+  box-shadow: 0 0 0 var(--sp-1) var(--cl-prussian-wash);
+}
+
+.marker--quiet {
+  text-decoration-color: var(--cl-rule-strong);
+}
+
+.rail {
+  display: none;
+}
+
+.card--inline {
+  position: relative;
+  z-index: 2;
+  max-width: 100%;
+}
+
+@media (min-width: 900px) {
+  .stage {
+    grid-template-columns: minmax(0, 1fr) 376px;
+    gap: 0;
+  }
+
+  .rail {
+    display: block;
+    position: relative;
+  }
+
+  .rail .card {
+    position: absolute;
+    left: var(--sp-10);
+    top: 0;
+    width: calc(100% - var(--sp-10));
+    max-width: 336px;
+    z-index: 2;
+  }
+
+  .reader__flow {
+    padding: var(--sp-6);
+  }
+}
+
+/* Panels: empty, error. */
+.panel {
+  display: grid;
+  gap: var(--sp-3);
+  justify-items: start;
+  padding: var(--sp-6);
+  border-radius: var(--radius-lg);
+  background: var(--cl-sheet);
+  box-shadow: var(--cl-shadow-e1);
+}
+
+.panel--danger {
+  background: var(--cl-danger-wash);
+}
+
+.panel__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.panel--danger .panel__title .icon {
+  color: var(--cl-danger);
+}
+
+.panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+}
+
+/* Loading skeleton: the exact boxes of the result, after 150 ms. */
+.skeleton {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.skeleton__bar {
+  display: block;
+  width: 40%;
+  height: 16px;
+  border-radius: var(--radius-xs);
+  background: var(--cl-sheet-2);
+}
+
+.skeleton__bar--wide {
+  width: 70%;
+}
+
+.skeleton__bar--head {
+  width: 60%;
+  height: 32px;
+}
+
+.skeleton__ledger {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.skeleton__row {
+  display: grid;
+  gap: var(--sp-2);
+  padding-block: var(--sp-3);
+  border-top: 1px solid var(--cl-rule);
+}
+
+/* Footer. */
+.app-foot {
+  border-top: 1px solid var(--cl-rule);
+}
+
+.app-foot__inner {
+  display: grid;
+  gap: var(--sp-1);
+  padding-block: var(--sp-6);
+}
+
+.app-foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

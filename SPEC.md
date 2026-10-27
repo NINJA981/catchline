@@ -304,3 +304,35 @@ in the post), not screen-recorded.
 
 LinkedIn copy (from picks.json): "Every asterisk on the internet is a promise with a catch 3,000
 pixels below it. I built an extension that drags the catch back up to the promise."
+
+## 13. Web app (`site/`, route `/app/`)
+
+Most people who see the LinkedIn post are on a phone, where extensions cannot run. The web app runs
+the same engine (`src/core`, imported through the `@catchline/core` Vite alias, never copied) on
+text or HTML the visitor pastes, or on a bundled sample page from the synthetic fixtures, and shows
+every claim with its catch. It is a static, installable (PWA), offline-capable page. It is not a
+second product: no accounts, no storage of pasted content, no network beyond its own static files.
+
+**Scope.** Input: paste box, "Open a saved page" file picker, eight bundled samples (`tests/fixtures/synthetic`),
+and `#sample=<id>` deep links. It cannot open a URL: browsers block cross-origin page fetches
+(CORS), and the page says so and offers paste. Output: rollup line and ledger, catch list, the page
+as readable text with every marker as a button, the catch card with the footnote flight and tether,
+and the share-this-catch PNG (1200 x 630, rendered locally by the extension's share painter).
+Pasted markup is parsed with `DOMParser` (inert: no script runs, no resource loads) and only ever
+read as text.
+
+**Acceptance criteria.** Tests live in `site/tests` (`engine.test.ts`, `guards.test.ts` with Vitest;
+`e2e/site.spec.ts` with Playwright against the production build, `pnpm test:e2e`).
+
+- AC-W1 (e2e) The empty state shows the line "Runs entirely in your browser. Nothing is uploaded.", a "Try a sample" button and the CORS note; it logs no console errors.
+- AC-W2 (e2e) "Try a sample" on the carrier specimen shows `3 catches: $35 + 36 months hidden`, three catch rows, and opens a card with three chips and the highlighted raw footnote when a marker is activated; the footnote gets a ghost outline and the card closes on Esc.
+- AC-W3 (unit) All eight samples produce the expected counted and listed catch counts through the real engine, and every marker and matched footnote is findable in the reader view.
+- AC-W4 (e2e) Pasting plain text works; pressing "Find the catches" with an empty box shows the error state ("Nothing to scan"), and a following valid paste clears it.
+- AC-W5 (e2e) The not-found sample shows "No footnote found" in the card; the many-to-one sample shows the chosen sentence first and an expander that reveals the whole offer block.
+- AC-W6 (e2e) "Save image" downloads a PNG named `catchline-<host>-<date>.png` that is exactly 1200 x 630.
+- AC-W7 (e2e) The signature flight plays on the first card open (a clone exists, then is removed) and not under `prefers-reduced-motion: reduce`; J and K step between catches with no animation.
+- AC-W8 (e2e) At 375 px wide there is no horizontal scroll and every button, row and summary is at least 44 px tall.
+- AC-W9 (e2e) After the first load the worker precaches the build; with the network off, reloading `/app/#sample=<id>` still scans and opens a card. The manifest has `start_url` `./app/`, `display: standalone` and 192 and 512 px icons (unit).
+- AC-W10 (e2e, unit) The pages make no request to any other origin (Playwright request log), the built output has no `fetch(`, `XMLHttpRequest`, `WebSocket`, `sendBeacon` or external URL (`pnpm check:network`), and the Content-Security-Policy has `connect-src 'none'`.
+- AC-W11 (unit) The site CSS uses only DESIGN.md tokens: no color literals outside the shared token file, spacing, radius and type sizes from the scales, no `transition: all`, no gradients.
+- AC-W12 (lighthouse, trace) On a throttled mobile profile (4x CPU, Slow 4G) LCP is at most 2.0 s and CLS is 0; Lighthouse accessibility and best-practices are at least 95. Initial JS is at most 120 KB gzip (`pnpm check:budget`).

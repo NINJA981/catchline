@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Catchline web app: paste a promo page, see the catch</title>
+    <meta
+      name="description"
+      content="Paste any promo text or page HTML and see every starred claim pulled up next to its catch. Runs entirely in your browser. Nothing is uploaded."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#fafcfe" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1014" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Catchline" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link
+      rel="preload"
+      href="/fonts/schibsted-grotesk-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/src/styles/base.css" />
+    <link rel="stylesheet" href="/src/styles/components.css" />
+    <link rel="stylesheet" href="/src/styles/app.css" />
+    <script type="module" src="/src/app/main.ts"></script>
+  </head>
+  <body class="app">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="app-bar">
+      <div class="wrap app-bar__inner">
+        <a class="brand" href="../" aria-label="Catchline, back to the site">
+          <svg class="brand__mark" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            <circle cx="5" cy="18" r="2" />
+            <path d="M7 18C14 18 10 6 17 6" />
+            <rect x="17" y="3" width="5" height="6" rx="1" />
+          </svg>
+          <span class="brand__name">Catchline</span>
+        </a>
+        <div class="app-bar__tail">
+          <button class="btn btn--ghost" type="button" id="install" hidden>Install app</button>
+          <a class="btn btn--ghost" href="../">About</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="wrap app-main">
+      <section class="intro" aria-labelledby="app-title">
+        <h1 class="t-h1" id="app-title">Paste a promo page. See the catch next to every claim.</h1>
+        <p class="t-body t-muted prose">
+          The same scanner, matcher and catch extractor as the browser extension. It finds every
+          starred claim, pulls it up to its fine print, and lists the fees and conditions.
+        </p>
+        <p class="privacy-line t-label">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path
+              d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+            />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+          Runs entirely in your browser. Nothing is uploaded.
+        </p>
+      </section>
+
+      <section class="input" aria-labelledby="source-label">
+        <label class="t-label" id="source-label" for="source">Page text or HTML</label>
+        <textarea
+          id="source"
+          rows="8"
+          spellcheck="false"
+          autocomplete="off"
+          autocapitalize="off"
+          aria-describedby="source-note"
+          placeholder="Paste the offer and its fine print here. For example:&#10;&#10;Unlimited data¹ for $0/mo*&#10;&#10;*With a 36-month installment agreement. $35 activation fee. Autopay required.&#10;¹Speeds may slow after 50GB."
+        ></textarea>
+        <div class="input__actions">
+          <button class="btn btn--primary" type="button" id="scan">Find the catches</button>
+          <button class="btn btn--secondary" type="button" id="sample-btn">Try a sample</button>
+          <label class="btn btn--secondary file-btn">
+            <span>Open a saved page</span>
+            <input
+              class="sr-only"
+              type="file"
+              id="file"
+              accept=".html,.htm,.txt,text/html,text/plain"
+            />
+          </label>
+          <button class="btn btn--ghost" type="button" id="clear">Clear</button>
+        </div>
+        <p class="t-caption t-subtle prose" id="source-note">
+          Browsers don’t let a web page fetch other sites’ pages (CORS), so Catchline can’t open a
+          link for you. Open the offer, select all, copy, and paste it here. Pasting page source
+          (View source) works best; plain text works too.
+        </p>
+      </section>
+
+      <details class="samples" id="samples" open>
+        <summary class="t-h2">Sample pages</summary>
+        <p class="t-body t-muted prose">
+          Specimen pages from the test fixtures. Every merchant is fictional and none is a real
+          offer.
+        </p>
+        <ul class="sample-list" id="sample-list"></ul>
+      </details>
+
+      <section
+        class="result"
+        id="result"
+        aria-live="polite"
+        aria-busy="false"
+        aria-label="Results"
+      ></section>
+      <noscript>
+        <p class="panel panel--danger t-body">
+          The web app needs JavaScript to run the scanner in your browser. Nothing is sent anywhere
+          either way.
+        </p>
+      </noscript>
+    </main>
+
+    <footer class="app-foot">
+      <div class="wrap app-foot__inner">
+        <p class="t-caption t-subtle">
+          Catchline doesn’t read fine print inside images, and it doesn’t open separate terms pages.
+          <span id="offline-note"></span>
+        </p>
+        <p class="t-caption t-subtle">
+          <a href="../">About Catchline</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

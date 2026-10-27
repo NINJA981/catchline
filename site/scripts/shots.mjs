@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { chromium } from '@playwright/test';
 
 const out = process.argv[2] ?? 'shots';
-const base = process.argv[3] ?? 'http://localhost:4173/';
+const base = process.argv[3] ?? 'http://localhost:4619/';
 mkdirSync(out, { recursive: true });
 
 const widths = [

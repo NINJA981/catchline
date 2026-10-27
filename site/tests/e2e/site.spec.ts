@@ -10,7 +10,7 @@ function watch(page: Page): { errors: string[]; foreign: string[] } {
   });
   page.on('request', (r) => {
     const u = new URL(r.url());
-    if (u.origin !== 'http://localhost:4173' && !/^(data|blob):/.test(r.url()))
+    if (u.origin !== 'http://localhost:4619' && !/^(data|blob):/.test(r.url()))
       foreign.push(r.url());
   });
   return { errors, foreign };
@@ -95,7 +95,7 @@ test.describe('landing', () => {
 });
 
 test.describe('web app', () => {
-  test('empty state offers a sample and states the privacy line', async ({ page }) => {
+  test('AC-W1: empty state offers a sample and states the privacy line', async ({ page }) => {
     const w = watch(page);
     await page.goto('/app/');
     await expect(
@@ -107,7 +107,7 @@ test.describe('web app', () => {
     expect(w.errors).toEqual([]);
   });
 
-  test('sample: success, card, flight, ghost outline, Escape', async ({ page }) => {
+  test('AC-W2: sample: success, card, flight, ghost outline, Escape', async ({ page }) => {
     const w = watch(page);
     await page.goto('/app/');
     await page.getByRole('button', { name: 'Try a sample' }).first().click();
@@ -126,7 +126,7 @@ test.describe('web app', () => {
     expect(w.errors).toEqual([]);
   });
 
-  test('J and K step between catches without animation', async ({ page }) => {
+  test('AC-W7: J and K step between catches without animation', async ({ page }) => {
     await page.goto('/app/#sample=carrier-specimen');
     await expect(page.locator('.result__summary')).toBeVisible();
     await page.keyboard.press('j');
@@ -138,7 +138,7 @@ test.describe('web app', () => {
     await expect(page.locator('.card__claim')).toHaveText('$0/mo*');
   });
 
-  test('error state: nothing to scan, then recovery by pasting text', async ({ page }) => {
+  test('AC-W4: error state: nothing to scan, then recovery by pasting text', async ({ page }) => {
     await page.goto('/app/');
     await page.getByRole('button', { name: 'Find the catches' }).click();
     await expect(page.getByRole('alert')).toContainText('Nothing to scan');
@@ -151,7 +151,7 @@ test.describe('web app', () => {
     await expect(page.getByRole('alert')).toHaveCount(0);
   });
 
-  test('not-found sample shows the honest card and the original text is never hidden', async ({
+  test('AC-W5: not-found sample shows the honest card and the original text is never hidden', async ({
     page,
   }) => {
     await page.goto('/app/#sample=not-found');
@@ -160,7 +160,9 @@ test.describe('web app', () => {
     await expect(page.locator('.card__panel')).toContainText('No footnote found');
   });
 
-  test('many-to-one: sentence first, expander reveals the whole offer block', async ({ page }) => {
+  test('AC-W5: many-to-one: sentence first, expander reveals the whole offer block', async ({
+    page,
+  }) => {
     await page.goto('/app/#sample=many-to-one');
     await page.locator('.marker').first().click();
     const more = page.locator('.fine__more');
@@ -172,7 +174,7 @@ test.describe('web app', () => {
     await expect(more).toHaveText('Show less');
   });
 
-  test('Save image produces a 1200 x 630 PNG', async ({ page }) => {
+  test('AC-W6: Save image produces a 1200 x 630 PNG', async ({ page }) => {
     await page.goto('/app/#sample=carrier-specimen');
     await page.locator('.marker').first().click();
     const [download] = await Promise.all([
@@ -189,7 +191,7 @@ test.describe('web app', () => {
     expect(buf.readUInt32BE(20)).toBe(630);
   });
 
-  test('phone: 44px touch targets, no horizontal scroll, card inline under the claim', async ({
+  test('AC-W8: phone: 44px touch targets, no horizontal scroll, card inline under the claim', async ({
     browser,
   }) => {
     const ctx = await browser.newContext({
@@ -221,7 +223,7 @@ test.describe('web app', () => {
     await ctx.close();
   });
 
-  test('works offline after the first load and is installable', async ({ browser }) => {
+  test('AC-W9: works offline after the first load and is installable', async ({ browser }) => {
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
     await page.goto('/app/');

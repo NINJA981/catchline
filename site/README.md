@@ -19,7 +19,7 @@ cd site
 pnpm install
 pnpm dev                 # http://localhost:5173
 pnpm build               # ../.output/site/ (includes sw.js, the precache service worker)
-pnpm preview             # http://localhost:4173, serves ../.output/site/
+pnpm preview             # http://localhost:4619, serves ../.output/site/
 pnpm test                # Vitest: engine adapter, landing vs engine, CSS token guard, privacy guards
 pnpm test:e2e            # builds, then Playwright against the production build (needs Chromium)
 pnpm typecheck

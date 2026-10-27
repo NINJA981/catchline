@@ -8,6 +8,7 @@ interface E2eStorageArea {
 
 declare const chrome: {
   tabs: {
+    sendMessage(tabId: number, message: unknown, options?: { frameId?: number }): Promise<unknown>;
     query(info: Record<string, never>): Promise<{ id?: number; url?: string }[]>;
   };
   action: {
@@ -15,11 +16,13 @@ declare const chrome: {
     getTitle(details: { tabId: number }): Promise<string>;
   };
   storage: { local: E2eStorageArea; session: E2eStorageArea };
+  commands: { getAll(): Promise<{ name?: string }[]> };
   runtime: {
     getManifest(): {
       manifest_version: number;
       permissions?: string[];
       host_permissions?: string[];
+      commands?: Record<string, { suggested_key?: { default?: string } }>;
     };
   };
 };

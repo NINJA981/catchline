@@ -131,7 +131,12 @@ export function FinePrint({
 }) {
   const parts = segmentText(text, spans);
   return (
-    <div className={cn('cl-fine', scroll && 'cl-fine--scroll')} data-testid="fine-print">
+    <div
+      className={cn('cl-fine', scroll && 'cl-fine--scroll')}
+      data-testid="fine-print"
+      // A scrolling region must be reachable by keyboard (axe scrollable-region-focusable).
+      {...(scroll ? { tabIndex: 0, role: 'group', 'aria-label': 'Offer details' } : {})}
+    >
       {parts.map((p, i) =>
         p.mark ? <mark key={i}>{p.text}</mark> : <span key={i}>{p.text}</span>,
       )}

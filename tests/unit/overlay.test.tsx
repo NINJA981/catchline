@@ -8,7 +8,7 @@ import {
 } from '../../src/overlay/model';
 import { CardContent } from '../../src/overlay/CardContent';
 import { MotionProvider } from '../../src/ui/components/motion';
-import { ChipList } from '../../src/ui/components/catch-parts';
+import { ChipList, FinePrint } from '../../src/ui/components/catch-parts';
 import { loadFixture } from './helpers';
 
 function models(name: string): { models: CatchModel[]; catches: Catch[] } {
@@ -37,7 +37,10 @@ describe('catch card states (DESIGN.md "Catch card")', () => {
     const m = ms.find((x) => x.claimText.includes('$0/mo'));
     if (!m) throw new Error('fixture changed');
     const { container } = card(m);
-    expect(screen.getByRole('heading', { name: /\$0\/mo\*/ })).toBeTruthy();
+    // The claim names the dialog but is not a heading: the card lands inside someone else's page
+    // and must not break that page's heading outline (axe heading-order).
+    expect(container.querySelector('.cl-card__claim')?.textContent).toContain('$0/mo*');
+    expect(container.querySelector('h1, h2, h3, h4, h5, h6')).toBeNull();
     expect(screen.getByText('Matched')).toBeTruthy();
     expect(container.querySelectorAll('.cl-chip').length).toBeGreaterThanOrEqual(3);
     // The merchant's own words are always shown (AC-F4.2), with the chip spans marked.
@@ -184,5 +187,20 @@ describe('what gets a hit target and a place in Show all', () => {
     const { models: nf } = models('synthetic/not-found.html');
     expect(nf.some((m) => m.card.kind === 'not-found' && isInteractive(m))).toBe(true);
     expect(showAllModels(nf).every((m) => m.counted)).toBe(true);
+  });
+});
+
+describe('fine print region (axe scrollable-region-focusable)', () => {
+  it('a scrolling block is keyboard reachable and named; a short one is left plain', () => {
+    const { container, rerender } = render(<FinePrint text="Long offer text" spans={[]} scroll />);
+    const scrolling = container.querySelector('[data-testid="fine-print"]');
+    expect(scrolling?.getAttribute('tabindex')).toBe('0');
+    expect(scrolling?.getAttribute('aria-label')).toBe('Offer details');
+    // A group, not a landmark: several cards on one page must not repeat a landmark name.
+    expect(scrolling?.getAttribute('role')).toBe('group');
+    rerender(<FinePrint text="Short" spans={[]} />);
+    const plain = container.querySelector('[data-testid="fine-print"]');
+    expect(plain?.hasAttribute('tabindex')).toBe(false);
+    expect(plain?.hasAttribute('role')).toBe(false);
   });
 });

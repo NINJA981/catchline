@@ -54,11 +54,15 @@ export function createWorkspace(opts: WorkspaceOptions): Workspace {
 
   // Reader.
   const flow = h('div', { class: 'reader__flow' });
+  let headingLevel = 2;
   for (const block of scan.reader.blocks) {
     const el = h('p', { class: `rd rd--${block.kind}`, 'data-block': String(block.index) });
     if (block.kind === 'heading') {
       el.setAttribute('role', 'heading');
-      el.setAttribute('aria-level', String(Math.min(6, block.level + 1)));
+      // The pasted page's own heading levels, nested under the result heading (h2) and never
+      // skipping a level, so the reader does not break the app's heading outline.
+      headingLevel = Math.min(6, block.level + 1, headingLevel + 1);
+      el.setAttribute('aria-level', String(headingLevel));
     }
     if (block.fontPx !== null && block.fontPx < 13) {
       // The page's own small print, at the size the page set it (never below 9 px).
@@ -79,7 +83,8 @@ export function createWorkspace(opts: WorkspaceOptions): Workspace {
           type: 'button',
           'data-marker': run.markerId,
           'aria-expanded': 'false',
-          'aria-label': `Show the catch for ${c ? truncate(c.marker.claimText, 60) : 'this claim'}`,
+          // The visible mark (*, 1, †) must be inside the accessible name (WCAG 2.5.3).
+          'aria-label': `Show the catch for ${c ? truncate(c.marker.claimText, 60) : 'this claim'}, marker ${run.text}`,
         },
         run.text,
       );

@@ -51,4 +51,13 @@ test.describe('manifest', () => {
     expect(manifest.host_permissions).toEqual(['<all_urls>']);
     expect(manifest.manifest_version).toBe(3);
   });
+
+  test('AC-F6.1: the Show all shortcut is a manifest command, Alt+Shift+C by default', async ({
+    worker,
+  }) => {
+    const manifest = await worker.evaluate(() => chrome.runtime.getManifest());
+    expect(manifest.commands?.['show-all']?.suggested_key?.default).toBe('Alt+Shift+C');
+    const commands = await worker.evaluate(() => chrome.commands.getAll());
+    expect(commands.map((c) => c.name)).toContain('show-all');
+  });
 });

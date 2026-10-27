@@ -67,13 +67,21 @@ function PopupShell({ popup, view }: { popup: PopupModel; view: PopupView }) {
   }, [canShowAll, popup]);
 
   const { host, enabledOnSite } = popup;
+  const ownsHeading = view.kind === 'success' || view.kind === 'reference-only';
   const toggleable = host !== null && view.kind !== 'restricted' && view.kind !== 'permission';
   return (
     <main className="cl-root pop">
       <header className="pop-head">
         <span className="pop-brand">
           <Mark />
-          <span className="pop-word">Catchline</span>
+          {/* States with no count of their own still need a page heading (axe page-has-heading-one). */}
+          {ownsHeading ? (
+            <span className="pop-word">Catchline</span>
+          ) : (
+            <span className="pop-word" role="heading" aria-level={1}>
+              Catchline
+            </span>
+          )}
         </span>
         {host && (
           <span className="pop-host cl-subtle" title={host}>

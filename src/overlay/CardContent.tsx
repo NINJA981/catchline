@@ -221,7 +221,9 @@ export function CardContent({
     <div onKeyDown={onKeyDown}>
       {!hideClaim && (
         <div className="cl-card__head">
-          <h3
+          {/* A <p>, not a heading: the card lands in someone else's page and must not break its outline.
+              The dialog is named by this element through aria-labelledby. */}
+          <p
             className="cl-card__claim"
             id={headingId}
             tabIndex={-1}
@@ -229,7 +231,7 @@ export function CardContent({
             title={model.claimText}
           >
             {model.claimText}
-          </h3>
+          </p>
           <div className="cl-card__meta">
             {showTag && <ConfidenceTag level={level} reason={reason} />}
             {onClose && (

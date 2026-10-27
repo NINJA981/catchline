@@ -1,6 +1,6 @@
 # Catchline handoff
 
-Last updated: 2026-10-27, end of Stage 3a (product UI).
+Last updated: 2026-10-27, end of Stage 4 (test engineer). Stage 3a/3b notes below are still accurate; the Checks table and "Testing (Stage 4)" are the current numbers.
 
 ## Status
 
@@ -25,18 +25,19 @@ Every user-facing surface in SPEC section 5 is built on the DESIGN.md tokens, in
 Not built (see "Known issues"): the optional plain-language line (F12) is only a saved setting that
 Options explains is not in this version; the real-page corpus and scorer; Firefox runtime testing.
 
-## Checks (last run, 2026-10-27)
+## Checks (last run, 2026-10-27, Stage 4)
 
 | Check | Result |
 |---|---|
+| `pnpm lint` (ESLint strict type-checked + Prettier, includes `site/`) | pass |
 | `pnpm typecheck` | pass (TypeScript 6.0.3) |
-| `pnpm lint` (ESLint strict type-checked + Prettier) | pass |
-| `pnpm test` (Vitest, happy-dom) | pass: 473 tests in 20 files |
-| `pnpm build` (Chrome MV3) | pass |
-| `pnpm build:firefox` + `web-ext lint` | 0 errors, 0 notices, 4 warnings (all `UNSAFE_VAR_ASSIGNMENT` from React DOM's own `innerHTML` in the settings chunk and overlay bundle) |
-| `pnpm check:network` | pass |
-| `pnpm test:e2e` (Playwright, headless Chromium, built extension) | 38 tests; 37 to 38 pass per run. Two timing flakes were seen once each and hardened: the popup first-paint gate and the cold-start badge wait (see below). Run again before trusting it. |
-| axe-core (AC-X.3) on popup, options, welcome and an open card | zero violations, light and dark (part of the e2e run) |
+| `pnpm test` (Vitest, happy-dom) | pass: 487 tests in 23 files |
+| `pnpm test:site` (site typecheck + Vitest) | pass: 42 tests in 4 files |
+| `pnpm build` / `pnpm build:firefox` / `pnpm check:network` | pass (Firefox `web-ext lint` was last run in Stage 3a: 0 errors, 4 React DOM `innerHTML` warnings) |
+| `pnpm build:site` + `site check:budget` + `site check:network` | pass (landing 24.4 kB gz, app 36.5 kB gz initial JS, limit 120 kB) |
+| `pnpm exec playwright test` (extension e2e + parity) | 68 tests pass (68 of 68 after the fixture fix; one earlier run had the AC-X.1 race, see "Testing (Stage 4)") |
+| `pnpm --dir site exec playwright test` (site e2e, desktop + phone) | 99 tests pass |
+| axe-core | zero violations on every surface, light and dark (list in `docs/TESTING.md`) |
 
 Bundle sizes (gzip -6): scanner content script 27.7 kB (ADR budget 22 kB, still over), overlay
 content script 136 kB (injected on demand only), no size-limit check yet.
@@ -69,7 +70,9 @@ pnpm dev                 # Chrome with HMR (WXT opens a browser)
 pnpm build               # .output/chrome-mv3, load unpacked at chrome://extensions
 pnpm build:firefox       # .output/firefox-mv3
 pnpm test                # unit tests
-pnpm test:e2e            # builds, then runs Playwright (needs: pnpm exec playwright install chromium)
+pnpm test:e2e            # builds the extension and the site, then runs the extension Playwright suite
+pnpm test:site           # site typecheck + unit; pnpm --dir site exec playwright test for site e2e
+pnpm verify              # everything, in order (lint to both e2e suites)
 pnpm lint && pnpm typecheck
 pnpm check:network       # after a build
 ```
@@ -189,6 +192,44 @@ numbers and known issues are in **`site/README.md`**; the testable criteria are 
 - Open: accuracy panel says "not yet measured" (no `corpus/report.json`), no store or repository
   links exist yet, landing copy describes the full extension and should be re-checked once the
   overlay is built.
+
+## Testing (Stage 4)
+
+Full matrix of every SPEC acceptance criterion to its tests, the layers, and what is not covered:
+**`docs/TESTING.md`**. `tests/unit/guards/ac-coverage.test.ts` fails when a criterion is named by
+no test and is not a listed gap.
+
+Added in this stage: site e2e split into app flows (sample, paste, upload), offline/PWA/CSP/request
+log, axe sweep and a landing smoke test, each run on a desktop project and a phone project (375 x 812,
+touch); an extension axe sweep over the remaining surfaces (popup states, options, Show all rail,
+no-footnote and many-to-one cards); the extension-vs-web-app parity test over all 15 synthetic
+fixtures (`tests/e2e/parity.spec.ts`); the SPEC coverage guard.
+
+Real bugs found and fixed (each with the smallest change):
+
+1. Web app marker buttons: the accessible name did not contain the visible mark (WCAG 2.5.3 label in
+   name). `aria-label` now ends with `marker <mark>` (`site/src/app/workspace.ts`).
+2. Web app reader: pasted-page headings could skip levels and break the app's outline; levels are now
+   nested under the result heading and never skip (`workspace.ts`).
+3. Overlay card: the claim was an `h3` injected into someone else's page, which can break the host's
+   heading outline; it is now a `p` that still names the dialog (`src/overlay/CardContent.tsx`).
+4. Fine-print scroll region was not keyboard reachable (axe scrollable-region-focusable); it is now
+   focusable with a name (`src/ui/components/catch-parts.tsx`).
+5. Popup states without a count had no h1 (axe page-has-heading-one); the brand word carries it
+   there (`src/entrypoints/popup/App.tsx`).
+6. Landing page: the commands `pre` block scrolls, so it is now focusable and named (`site/index.html`).
+7. Test infrastructure race: the e2e `requests` fixture counted the welcome tab's own chunk loads
+   (the tab opens on install) as extension-origin requests when its frame URL was still blank, which
+   failed AC-X.1 once in two full runs. An extension-origin load now counts only when a web page
+   issued it (`tests/e2e/extension.ts`). The check still fails if a page reaches into the extension.
+8. Site e2e port: the site preview ran on 4173 with `reuseExistingServer: true`; other projects on
+   this machine use that port, so a run could test the wrong site. Now 4619, never reused.
+
+Flake history, honestly: this machine is shared with other projects' browsers and servers, which is
+the likely cause of the timing flakes seen in Stage 3a. Stage 4 full-suite runs: extension e2e run 1
+68 of 68, run 2 67 of 68 (the AC-X.1 race above), run 3 after the fix 68 of 68. Site e2e: 99 of 99 in
+both runs. Lint, typecheck and unit were run once, before the last test-fixture edit; lint and
+typecheck were re-run after it (see commit).
 
 ## Next stage: start here
 

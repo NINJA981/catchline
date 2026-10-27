@@ -37,7 +37,7 @@ const DYNAMIC_PAGES: Record<string, string> = {
     </script></body></html>`,
 };
 
-// Extra dynamic pages for the overlay tests (AC-F5, AC-F6).
+// Extra dynamic pages for the overlay tests (F5 and F6).
 DYNAMIC_PAGES['/tall.html'] =
   `<!doctype html><html lang="en"><body style="margin:0;font:16px/1.5 Georgia,serif">
   <header id="sticky" style="position:sticky;top:0;height:64px;background:#fff;border-bottom:1px solid #ccc;z-index:10;padding:20px 16px;box-sizing:border-box">Sticky header</header>
@@ -54,6 +54,24 @@ DYNAMIC_PAGES['/hostile.html'] =
   <h1>Free shipping on every order*</h1>
   <footer>*Orders of $50+ only. Contiguous US only. While supplies last.</footer>
 </body></html>`;
+
+/** Launches Chromium with the built extension on a user-data dir (reuse a dir to simulate a restart). */
+export async function launchExtension(userDataDir: string): Promise<BrowserContext> {
+  if (!existsSync(join(EXTENSION_PATH, 'manifest.json'))) {
+    throw new Error('Extension not built. Run "pnpm build" before the e2e tests.');
+  }
+  return chromium.launchPersistentContext(userDataDir, {
+    channel: 'chromium', // new headless mode: the only headless mode that loads extensions
+    headless: true,
+    args: [
+      `--disable-extensions-except=${EXTENSION_PATH}`,
+      `--load-extension=${EXTENSION_PATH}`,
+      '--disable-renderer-backgrounding',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-background-timer-throttling',
+    ],
+  });
+}
 
 export interface Site {
   origin: string;
@@ -104,8 +122,14 @@ export const test = base.extend<Fixtures>({
     const urls: string[] = [];
     context.on('request', (r) => {
       // Loads an extension page makes of its own packaged files are not network requests.
+      // A page that is still navigating (the welcome tab opened on install) reports an empty or
+      // about:blank frame URL while its first chunks load, so an extension-origin load counts
+      // only when it was issued by a web page (http or https): that is a page reaching into the
+      // extension, which is what the privacy tests look for.
       try {
-        if (r.frame().url().startsWith('chrome-extension://')) return;
+        const frameUrl = r.frame().url();
+        if (frameUrl.startsWith('chrome-extension://')) return;
+        if (r.url().startsWith('chrome-extension://') && !/^https?:/.test(frameUrl)) return;
       } catch {
         // Service worker requests have no frame.
       }
@@ -116,21 +140,8 @@ export const test = base.extend<Fixtures>({
 
   // eslint-disable-next-line no-empty-pattern
   context: async ({}, use) => {
-    if (!existsSync(join(EXTENSION_PATH, 'manifest.json'))) {
-      throw new Error('Extension not built. Run "pnpm build" before the e2e tests.');
-    }
     const userDataDir = mkdtempSync(join(tmpdir(), 'catchline-e2e-'));
-    const context = await chromium.launchPersistentContext(userDataDir, {
-      channel: 'chromium', // new headless mode: the only headless mode that loads extensions
-      headless: true,
-      args: [
-        `--disable-extensions-except=${EXTENSION_PATH}`,
-        `--load-extension=${EXTENSION_PATH}`,
-        '--disable-renderer-backgrounding',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-background-timer-throttling',
-      ],
-    });
+    const context = await launchExtension(userDataDir);
     await use(context);
     await context.close();
     rmSync(userDataDir, { recursive: true, force: true });

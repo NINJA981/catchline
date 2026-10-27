@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --port 4173 --strictPort",
+    "preview": "vite preview --port 4619 --strictPort",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check:budget": "node scripts/check-budget.mjs",
@@ -22,6 +22,7 @@
     "lint:css": "vitest run tests/guards.test.ts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@fontsource-variable/schibsted-grotesk": "5.3.0",
     "@fontsource/commit-mono": "5.3.0",
     "@playwright/test": "1.64.1",

@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 
-const base = process.argv[2] ?? 'http://localhost:4173/';
+const base = process.argv[2] ?? 'http://localhost:4619/';
 const pub = new URL('../public/', import.meta.url);
 mkdirSync(new URL('icons/', pub), { recursive: true });
 

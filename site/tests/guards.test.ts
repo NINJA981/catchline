@@ -33,7 +33,7 @@ function rules(css: string): [string, string][] {
 
 const cssFiles = files(join(root, 'src/styles'), /\.css$/);
 
-describe('design tokens only', () => {
+describe('AC-W11: design tokens only', () => {
   it('no color literal outside the shared token file', () => {
     for (const f of cssFiles) {
       const css = read(f).replace(/\/\*[\s\S]*?\*\//g, '');
@@ -99,7 +99,7 @@ describe('design tokens only', () => {
   });
 });
 
-describe('privacy and offline guarantees', () => {
+describe('AC-W10: privacy and offline guarantees', () => {
   const pages = ['index.html', 'app/index.html'].map((p) => [p, read(join(root, p))] as const);
 
   it.each(pages)('%s has no inline script or style and no external URL', (_name, html) => {
@@ -137,7 +137,7 @@ describe('privacy and offline guarantees', () => {
     expect(CSP).not.toContain("script-src 'unsafe");
   });
 
-  it('manifest is installable', () => {
+  it('AC-W9: manifest is installable', () => {
     const m = JSON.parse(read(join(root, 'public/manifest.webmanifest'))) as Record<
       string,
       unknown

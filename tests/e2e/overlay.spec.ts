@@ -272,7 +272,7 @@ test.describe('card and tether (F5)', () => {
 });
 
 test.describe('Show all (F6)', () => {
-  test('AC-F6.1 to F6.3: the popup button enters Show all; J/K step with no animation; Enter expands; Esc restores scroll; host inputs are left alone', async ({
+  test('AC-F6.1, AC-F6.2, AC-F6.3: the popup button enters Show all; J/K step with no animation; Enter expands; Esc restores scroll; host inputs are left alone', async ({
     context,
     extensionId,
     worker,
@@ -387,7 +387,7 @@ test.describe('Show all (F6)', () => {
 });
 
 test.describe('share image (F8)', () => {
-  test('AC-F8.1/F8.2: Save image makes a 1200x630 PNG quickly, with no network request', async ({
+  test('AC-F8.1, AC-F8.2: Save image makes a 1200x630 PNG quickly, with no network request', async ({
     context,
     site,
     requests,

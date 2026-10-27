@@ -156,6 +156,26 @@ describe('popup (AC-F10.2 states)', () => {
     expect(screen.getByText(copy)).toBeTruthy();
   });
 
+  it('has exactly one page heading in every state (axe page-has-heading-one)', () => {
+    const states: [string, Partial<PopupInput>][] = [
+      ['with catches', {}],
+      ['empty', { rollup: buildRollup(1, [], 0) }],
+      ['restricted', { url: 'chrome://extensions' }],
+      ['permission', { hasHostPermission: false }],
+      ['disabled', { disabledHosts: ['carrier.example'] }],
+      ['error', { scannerError: true, rollup: null }],
+      ['loading', { rollup: null, elapsedMs: 150, ready: false }],
+    ];
+    for (const [name, patch] of states) {
+      input = base(patch);
+      if (name === 'empty') catches = [];
+      const { unmount } = render(<App />);
+      expect(screen.getAllByRole('heading', { level: 1 }).length, name).toBe(1);
+      unmount();
+      catches = orderSummaries(carrier.map(toCatchSummary));
+    }
+  });
+
   it('gives each failure state its action', () => {
     input = base({ hasHostPermission: false });
     const { unmount } = render(<App />);

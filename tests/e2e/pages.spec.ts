@@ -23,7 +23,7 @@ async function popupFor(
 }
 
 test.describe('popup (F10)', () => {
-  test('AC-F10.1/F10.2: shows the rollup, the ledger and the catch list for a page with catches', async ({
+  test('AC-F10.1, AC-F10.2: shows the rollup, the ledger and the catch list for a page with catches', async ({
     context,
     extensionId,
     worker,

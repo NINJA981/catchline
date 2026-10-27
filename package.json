@@ -19,12 +19,16 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "wxt build && playwright test",
+    "test:e2e": "wxt build && pnpm --dir site build && playwright test",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "wxt prepare && tsc --noEmit",
     "check:network": "node scripts/check-network.mjs",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "build:site": "pnpm --dir site build",
+    "test:site": "pnpm --dir site typecheck && pnpm --dir site test",
+    "test:site:e2e": "pnpm --dir site test:e2e",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:site && pnpm build && pnpm build:firefox && pnpm check:network && pnpm build:site && pnpm --dir site check:budget && pnpm --dir site check:network && playwright test && pnpm --dir site exec playwright test"
   },
   "dependencies": {
     "@fontsource-variable/schibsted-grotesk": "5.3.0",

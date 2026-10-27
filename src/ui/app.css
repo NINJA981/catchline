@@ -1,0 +1,41 @@
+/* Extension pages (popup, options, welcome). Fonts are self-hosted from Fontsource and bundled. */
+@import 'tailwindcss';
+@import '@fontsource-variable/schibsted-grotesk/wght.css';
+@import '@fontsource/commit-mono/latin-400.css';
+@import '@fontsource/commit-mono/latin-500.css';
+@import './tokens.css';
+
+@layer base {
+  html {
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background-color: var(--color-prussian-wash);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-prussian);
+    outline-offset: 2px;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/*
+ * Unlayered on purpose: Chromium gives extension pages a default body font ("Segoe UI", 75%) that
+ * is applied above @layer rules, so a layered body rule would lose to it (found by the e2e popup
+ * test). Everything else stays in the base layer.
+ */
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-ui);
+  line-height: var(--text-ui--line-height);
+}

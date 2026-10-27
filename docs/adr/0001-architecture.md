@@ -114,7 +114,7 @@ Build and test (devDependencies):
 | `@vitejs/plugin-react` | 6.1.2 | Peer `vite ^8` |
 | `tailwindcss` | 4.3.3 | Tokens via `@theme inline` (DESIGN.md) |
 | `@tailwindcss/vite` | 4.3.3 | |
-| `typescript` | 7.0.2 | Latest. Fallback pin `6.0.3` if WXT's type generation or any tool needs the JS compiler API that 7.x dropped (action item 1) |
+| `typescript` | 6.0.3 | **Pinned to 6.0.3 at Stage 2** (npm `latest` is 7.0.2). `typescript-eslint` 8.72.x declares `typescript >=4.8.4 <6.1.0`, so 7.x would break type-aware linting; revisit when typescript-eslint supports 7 |
 | `web-ext` | 10.8.0 | Firefox lint and run |
 | `vitest` | 5.0.5 | Unit tests |
 | `@vitest/coverage-v8` | 5.0.5 | |
@@ -372,8 +372,9 @@ hop plus flight.
 
 ## Action items
 
-1. [ ] Scaffold with exact pins; run `wxt prepare` and `tsc --noEmit` on TypeScript 7.0.2. If any
-       tool fails on 7.x, pin `typescript@6.0.3` and record why in this ADR.
+1. [x] Scaffold with exact pins (done in Stage 2). TypeScript is pinned to 6.0.3, not 7.0.2: the
+       blocker is `typescript-eslint`'s peer range (`<6.1.0`), not WXT. `wxt prepare` and
+       `tsc --noEmit` pass on 6.0.3; 7.0.2 was not tried with WXT.
 2. [ ] Spike (half a day): anchor positioning from a shadow-root card to a host element carrying an
        inline `anchor-name`, in Chrome stable and Firefox stable. Record the result here and choose
        the per-browser card path.

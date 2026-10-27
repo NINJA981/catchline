@@ -1,0 +1,11 @@
+.output
+.wxt
+node_modules
+coverage
+test-results
+playwright-report
+web-ext-artifacts
+pnpm-lock.yaml
+tests/fixtures/**/*.html
+*.md
+.impeccable

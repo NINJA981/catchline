@@ -1,0 +1,62 @@
+{
+  "description": "Hand labels: for each claim, the offer-block sentence a careful reader pairs with it. Written by hand; see tests/fixtures/README.md.",
+  "wordCount": 612,
+  "claims": [
+    {
+      "claim": "Unlimited Premium for $65/mo per line",
+      "sentenceStartsWith": "Plan pricing: Unlimited Premium is $65/mo per line"
+    },
+    {
+      "claim": "Get $800 off a new Pixelstone phone",
+      "sentenceStartsWith": "The $800 off a new Pixelstone phone"
+    },
+    {
+      "claim": "Streaming bundle included at no extra cost",
+      "sentenceStartsWith": "The streaming bundle is included"
+    },
+    {
+      "claim": "Save $10/mo with AutoPay",
+      "sentenceStartsWith": "To save $10/mo with AutoPay"
+    },
+    {
+      "claim": "5G Home Internet for $35/mo",
+      "sentenceStartsWith": "5G Home Internet is $35/mo"
+    },
+    {
+      "claim": "50GB of mobile hotspot data",
+      "sentenceStartsWith": "Mobile hotspot includes 50GB"
+    },
+    {
+      "claim": "25% off for military and first responders",
+      "sentenceStartsWith": "The 25% discount for military"
+    },
+    {
+      "claim": "4 lines for $100/mo when you switch",
+      "sentenceStartsWith": "The offer of 4 lines for $100/mo"
+    },
+    {
+      "claim": "Unlimited texting to 200+ countries",
+      "sentenceStartsWith": "Texting to 200+ countries"
+    },
+    {
+      "claim": "Trade in any phone in any condition",
+      "sentenceStartsWith": "Trade in any phone in any condition to get"
+    },
+    {
+      "claim": "Price Lock: your rate stays the same for 3 years",
+      "sentenceStartsWith": "Price Lock means"
+    },
+    {
+      "claim": "In-flight Wi-Fi on select airlines",
+      "sentenceStartsWith": "In-flight Wi-Fi is available"
+    },
+    {
+      "claim": "Smartwatch line free for 12 months",
+      "sentenceStartsWith": "The smartwatch line is free for 12 months"
+    },
+    {
+      "claim": "6 months of cloud storage on us",
+      "sentenceStartsWith": "Cloud storage for 6 months on us"
+    }
+  ]
+}

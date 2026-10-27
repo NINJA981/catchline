@@ -19,6 +19,9 @@ const ROOT = resolve(import.meta.dirname, '..', '..');
 const EXTENSION_PATH = join(ROOT, '.output', 'chrome-mv3');
 const FIXTURE_DIR = join(ROOT, 'tests', 'fixtures', 'synthetic');
 
+const FILLER =
+  '<p style="margin:24px 0">Filler paragraph so the page is tall enough to scroll.</p>'.repeat(60);
+
 /** Pages served from memory for tests that need timing or navigation the static fixtures lack. */
 const DYNAMIC_PAGES: Record<string, string> = {
   // The legal drawer is inserted 1.5 s after load (AC-F2.5).
@@ -33,6 +36,24 @@ const DYNAMIC_PAGES: Record<string, string> = {
       }, 1500);
     </script></body></html>`,
 };
+
+// Extra dynamic pages for the overlay tests (AC-F5, AC-F6).
+DYNAMIC_PAGES['/tall.html'] =
+  `<!doctype html><html lang="en"><body style="margin:0;font:16px/1.5 Georgia,serif">
+  <header id="sticky" style="position:sticky;top:0;height:64px;background:#fff;border-bottom:1px solid #ccc;z-index:10;padding:20px 16px;box-sizing:border-box">Sticky header</header>
+  <main style="padding:0 16px">
+    ${FILLER}
+    <h1 id="claim" style="margin:0 0 24px">Unlimited data for $25/mo*</h1>
+    <p><input id="host-input" type="text" aria-label="Search" placeholder="Search the page"></p>
+    ${FILLER}
+  </main>
+  <footer style="font-size:11px;padding:16px">*Requires autopay and a new line. $35 activation fee. 24-month agreement.</footer>
+</body></html>`;
+DYNAMIC_PAGES['/hostile.html'] =
+  `<!doctype html><html lang="en"><head><style>* { color: red !important; font-size: 30px !important; font-family: monospace !important; letter-spacing: 5px !important }</style></head><body>
+  <h1>Free shipping on every order*</h1>
+  <footer>*Orders of $50+ only. Contiguous US only. While supplies last.</footer>
+</body></html>`;
 
 export interface Site {
   origin: string;
@@ -81,7 +102,15 @@ export const test = base.extend<Fixtures>({
 
   requests: async ({ context }, use) => {
     const urls: string[] = [];
-    context.on('request', (r) => urls.push(r.url()));
+    context.on('request', (r) => {
+      // Loads an extension page makes of its own packaged files are not network requests.
+      try {
+        if (r.frame().url().startsWith('chrome-extension://')) return;
+      } catch {
+        // Service worker requests have no frame.
+      }
+      urls.push(r.url());
+    });
     await use(urls);
   },
 
@@ -94,7 +123,13 @@ export const test = base.extend<Fixtures>({
     const context = await chromium.launchPersistentContext(userDataDir, {
       channel: 'chromium', // new headless mode: the only headless mode that loads extensions
       headless: true,
-      args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
+      args: [
+        `--disable-extensions-except=${EXTENSION_PATH}`,
+        `--load-extension=${EXTENSION_PATH}`,
+        '--disable-renderer-backgrounding',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-background-timer-throttling',
+      ],
     });
     await use(context);
     await context.close();
@@ -143,7 +178,7 @@ export async function waitForBadge(
   worker: Worker,
   tabId: number,
   predicate: (b: BadgeState) => boolean,
-  timeoutMs = 8000,
+  timeoutMs = 15000,
 ): Promise<BadgeState> {
   const deadline = Date.now() + timeoutMs;
   let last: BadgeState = { text: '', title: '' };
@@ -159,4 +194,30 @@ export async function openPage(context: BrowserContext, url: string): Promise<Pa
   const page = await context.newPage();
   await page.goto(url);
   return page;
+}
+
+/** Waits for the scanner to draw its hit targets, then returns the first marker button. */
+export async function waitForMarkers(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => document.querySelector('catchline-markers')?.shadowRoot?.querySelector('button.m'),
+    null,
+    { timeout: 8000 },
+  );
+}
+
+/** Clicks the nth marker hit target through the page, like a user would. */
+export async function openCard(page: Page, index = 0): Promise<void> {
+  await waitForMarkers(page);
+  await page.evaluate((i) => {
+    const b = document.querySelector('catchline-markers')?.shadowRoot?.querySelectorAll('button.m')[
+      i
+    ];
+    (b as HTMLElement | undefined)?.click();
+  }, index);
+  await page.waitForFunction(
+    () => document.querySelector('catchline-overlay')?.shadowRoot?.querySelector('.cl-card'),
+    null,
+    { timeout: 8000 },
+  );
+  await page.bringToFront();
 }

@@ -101,6 +101,8 @@ export interface TabRollup {
   money: { total: number; currency: string; items: string[] };
   longestTerm: { months: number; label: string } | null;
   requirements: string[];
+  /** Rate chip labels, for the popup ledger. Absent in rollups stored by older builds. */
+  rates?: string[];
   /** Epoch ms. */
   scannedAt: number;
 }

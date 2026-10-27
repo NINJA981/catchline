@@ -2,7 +2,7 @@
 // `worker.evaluate(...)`. The callbacks run in the extension, not in Node, so the global is only a type.
 
 interface E2eStorageArea {
-  get(keys: null): Promise<Record<string, unknown>>;
+  get(keys: string | null): Promise<Record<string, unknown>>;
   set(items: Record<string, unknown>): Promise<void>;
 }
 

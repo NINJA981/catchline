@@ -14,6 +14,8 @@ export function buildRollup(tabId: number, catches: readonly Catch[], now: numbe
   let longest: TabRollup['longestTerm'] = null;
   const requirements: string[] = [];
   const seenReq = new Set<string>();
+  const rates: string[] = [];
+  const seenRate = new Set<string>();
 
   for (const c of counted) {
     for (const chip of c.chips) {
@@ -33,6 +35,12 @@ export function buildRollup(tabId: number, catches: readonly Catch[], now: numbe
         if (!longest || chip.value > longest.months) {
           longest = { months: chip.value, label: monthsLabel(chip.value) };
         }
+      } else if (chip.kind === 'rate') {
+        const key = chip.label.toLowerCase();
+        if (!seenRate.has(key)) {
+          seenRate.add(key);
+          rates.push(chip.label);
+        }
       } else if (chip.kind === 'requirement') {
         const key = chip.label.toLowerCase();
         if (!seenReq.has(key)) {
@@ -50,6 +58,7 @@ export function buildRollup(tabId: number, catches: readonly Catch[], now: numbe
     money: { total: Math.round(total * 100) / 100, currency: currency ?? 'USD', items },
     longestTerm: longest,
     requirements,
+    rates,
     scannedAt: now,
   };
 }

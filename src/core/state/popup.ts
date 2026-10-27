@@ -14,6 +14,8 @@ export interface PopupInput {
   scannerError: boolean;
   /** ms since the popup opened; the skeleton waits 150 ms before showing. */
   elapsedMs: number;
+  /** False until the tab, settings and rollup have been read; the popup shows no state before that. */
+  ready?: boolean;
 }
 
 export type PopupView =
@@ -30,6 +32,9 @@ export type PopupView =
 export const SKELETON_DELAY_MS = 150;
 
 export function derivePopupView(input: PopupInput): PopupView {
+  if (input.ready === false) {
+    return input.elapsedMs >= SKELETON_DELAY_MS ? { kind: 'loading' } : { kind: 'blank' };
+  }
   if (isRestrictedUrl(input.url)) {
     return { kind: 'restricted', copy: "Browsers don't let extensions read this page." };
   }

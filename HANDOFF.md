@@ -1,40 +1,65 @@
 # Catchline handoff
 
-Last updated: 2026-10-27, end of Stage 2 (scaffold + core).
+Last updated: 2026-10-27, end of Stage 3a (product UI).
 
 ## Status
 
-The engine and the extension plumbing exist and are tested. **There is no designed UI yet.** The
-popup is a plain-text placeholder on the DESIGN.md tokens. There is no on-page overlay, tether,
-card, Show all rail, share image, options page or welcome page.
+Every user-facing surface in SPEC section 5 is built on the DESIGN.md tokens, in light and dark:
 
-What works end to end today (verified in a real Chromium with the built extension, see "Checks"):
+- **Overlay** (`src/overlay/*`, injected on demand by `src/entrypoints/overlay.content.ts` inside a
+  Shadow DOM root): marker hit targets, the catch card (matched, likely, many-to-one expander, no
+  footnote, terms on another page, loading, error), the tether, the ghost outline, the footnote
+  flight (full, short and reduced-motion versions), Show all with the scrim, fanned tethers, rail
+  (bottom sheet under 900 px), J/K/Enter/Esc/? keys with pressable keycaps, and Share this catch
+  (1200 x 630 PNG painted locally, `src/overlay/share-render.ts`).
+- **Popup** (`src/entrypoints/popup`): rollup ledger, catch list, "Other footnotes", per-site toggle, and all
+  eight states (loading skeleton, empty, reference-only, success, disabled, restricted, permission
+  needed, error).
+- **Options** (`src/entrypoints/options`): every `Settings` field, sites turned off, accuracy ("Not yet
+  measured"), shortcut table, privacy, save-state text and a retry on a failed save.
+- **Welcome** (`src/entrypoints/welcome`): specimen page running the real overlay, labelled "Specimen
+  page. Not a real offer.", three steps, Firefox permission panel. Opened once on install.
+- Shared UI: `src/ui/components/*`, `src/ui/components.css`, `src/ui/pages.css`,
+  `src/ui/base.tokens.css` (tokens shared with the site), `src/overlay/overlay.css`.
 
-- The scanner content script runs on every page, finds markers, matches footnotes, extracts chips
-  and reports a rollup.
-- The toolbar badge shows the counted catches, per tab, with the tooltip
-  `N catches: $X + Y months hidden`, and clears on navigation.
-- Settings (disabled sites, badge on/off, run mode) are read from `chrome.storage.local`.
-- The popup shows the rollup and every state from the DESIGN.md table as plain text.
-- The Firefox MV3 build builds and passes `web-ext lint` (0 errors).
+Not built (see "Known issues"): the optional plain-language line (F12) is only a saved setting that
+Options explains is not in this version; the real-page corpus and scorer; Firefox runtime testing.
 
-## Checks (last run)
+## Checks (last run, 2026-10-27)
 
 | Check | Result |
 |---|---|
-| `pnpm typecheck` | pass |
+| `pnpm typecheck` | pass (TypeScript 6.0.3) |
 | `pnpm lint` (ESLint strict type-checked + Prettier) | pass |
-| `pnpm test` (Vitest, happy-dom) | pass: 430 tests in 18 files; v8 coverage 94% statements overall, 98% for `src/core` top level |
+| `pnpm test` (Vitest, happy-dom) | pass: 473 tests in 20 files |
 | `pnpm build` (Chrome MV3) | pass |
-| `pnpm build:firefox` + `web-ext lint` | 0 errors, 2 warnings (React DOM's own `innerHTML` in the popup chunk) |
-| `pnpm check:network` | pass: no `fetch(`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon` in the build |
-| `pnpm test:e2e` (Playwright, headless Chromium 156 with the built extension) | pass: 12 tests (badge rollup, per-tab, navigation clear, late footnote, disabled site, badge setting, popup, manifest permissions, zero external requests, storage contents) |
+| `pnpm build:firefox` + `web-ext lint` | 0 errors, 0 notices, 4 warnings (all `UNSAFE_VAR_ASSIGNMENT` from React DOM's own `innerHTML` in the settings chunk and overlay bundle) |
+| `pnpm check:network` | pass |
+| `pnpm test:e2e` (Playwright, headless Chromium, built extension) | 38 tests; 37 to 38 pass per run. Two timing flakes were seen once each and hardened: the popup first-paint gate and the cold-start badge wait (see below). Run again before trusting it. |
+| axe-core (AC-X.3) on popup, options, welcome and an open card | zero violations, light and dark (part of the e2e run) |
 
-Re-run them yourself; do not trust this table past the date above. The e2e suite found one real bug
-during this stage (Chromium's default extension-page body font beats `@layer base`, so the popup
-body rule is now unlayered in `src/ui/app.css`); the unit suite found three (plural units lost
-their weight in `tokenize`, `mo*.` at a sentence end was rejected as a wildcard, and APY was labelled
-APR).
+Bundle sizes (gzip -6): scanner content script 27.7 kB (ADR budget 22 kB, still over), overlay
+content script 136 kB (injected on demand only), no size-limit check yet.
+
+## Visual QA (DESIGN_BIBLE section 9)
+
+`node scripts/screenshots.mjs [overlay|popup|states|pages|strip|all]` (build first) writes to
+`docs/screenshots/`: options and welcome at 375/768/1440 light and dark (plus the welcome card
+open), overlay card, Show all (and expanded) at 375/768/1440 light and dark, many-to-one and
+not-found card states, all eight popup states light and dark at real size, the interaction state
+sheet (`states-popup-*.png`: rest, hover, focus-visible, pressed), the signature flight frame strip
+(`strip-flight.png`, 13 frames, plus `strip-flight/`) and the reduced-motion strip
+(`strip-reduced-motion.png`, 10 frames). The strips seek paused Web Animations, so they are
+deterministic.
+
+Self-scored against section 9.2, on the screenshots above: identity 9, typography 9, color 9,
+layout 9, hierarchy and content 9, component craft 9, interaction states 9, motion 9, system states 9,
+responsive 9; average about 9.0, no hard fail found (axe clean, focus rings visible in the state
+sheet, no horizontal scroll at 375, reduced motion honoured). This is the builder's own
+judgment, not an independent critic review. Honest caveats that keep it from being higher:
+the host fixtures are unstyled browser-default pages, so the overlay screenshots sit on Times New
+Roman (the welcome specimen shows the overlay on a styled page); no Lighthouse run for the
+extension pages; the disabled and loading primary-button states are shown for the popup only.
 
 ## How to run it
 
@@ -99,10 +124,10 @@ SPEC AC-F4.1) are inline in `tests/unit/extract/*.test.ts`.
 
 ## Known issues and gaps
 
-- **Scanner bundle is over the ADR budget:** 77.9 kB raw, about 25.7 kB gzip, against a 22 kB
-  gzip target (ADR section 6). No `size-limit` check exists yet. Likely savings: drop
-  `@webext-core/messaging` from the content script (use `browser.runtime.sendMessage` directly) and
-  split rarely used family rules.
+- **Scanner bundle is over the ADR budget:** 84 kB raw, 27.7 kB gzip (`gzip -6`), against a 22 kB
+  gzip target (ADR section 6). `@webext-core/messaging` is already gone; the overlay bridge and
+  settings code grew it. No `size-limit` check exists yet. Likely savings: split rarely used family
+  rules and lazy-load the marker layer.
 - **Accuracy is unmeasured on real pages.** The synthetic fixtures prove code paths. The extractor
   has known gaps (for example `$10 SIM kit fee`, `Penalty APR up to 29.99%`, `Late payment fee up
   to $41`, `Cash advance fee is 5%`, some "$X per extra N units" overage phrasings, and
@@ -116,7 +141,18 @@ SPEC AC-F4.1) are inline in `tests/unit/extract/*.test.ts`.
   (`state.test.ts`, `popup.test.tsx`).
 - **Firefox is build + lint only.** Playwright cannot load Firefox extensions; the manual smoke
   checklist below has not been run.
-- **Overlay injection hop (ADR action item 3) and CSS anchor positioning (item 2) are not spiked.**
+- **CSS anchor positioning is not used.** The card and tether use the measured-geometry path only
+  (one rAF loop while a card is open, read all rects then write all transforms). The injection hop
+  (executeScript from the background) is implemented and covered by e2e.
+- **AC-F8.1 is not golden-compared:** the e2e test checks the PNG is 1200 x 630 and made without a
+  network request, with a loose time gate; there is no pixel golden yet.
+- **AC-F10.1 (first paint 100 ms) is not asserted strictly:** measured 108 to 140 ms from navigation
+  start when run alone, once 552 ms on a loaded runner; the test gate is 1000 ms.
+- **E2E flakes:** the badge tests can miss their wait on a cold first browser launch (wait is now
+  15 s); re-run once before suspecting a regression.
+- **F12 plain-language line is a saved setting only.** Options says so; AC-F12.1 holds because no
+  built-in AI API is called anywhere.
+- **No Lighthouse run for the extension pages;** axe is the accessibility evidence.
 - **`web-ext lint` warnings:** two `UNSAFE_VAR_ASSIGNMENT` from React DOM internals in the popup
   chunk.
 - **TypeScript 7.0.2 with WXT is untried.** The blocker found is `typescript-eslint`, not WXT.
@@ -132,12 +168,33 @@ SPEC AC-F4.1) are inline in `tests/unit/extract/*.test.ts`.
 4. Open the popup: shows the same rollup; on `about:` pages it shows the restricted message.
 5. No network requests in the Network panel from the extension's origin.
 
+## Site: landing page and web app (Stage 3b, `site/`)
+
+A separate package (`site/package.json`, its own `pnpm install`). Full notes, decisions, measured
+numbers and known issues are in **`site/README.md`**; the testable criteria are SPEC section 13.
+
+- `/` landing page, `/app/` installable offline web app (paste text or HTML, or open a sample; the
+  engine, tether, flight, cost chips and share PNG). Run: `cd site && pnpm install && pnpm dev`.
+  Checks: `pnpm test`, `pnpm test:e2e`, `pnpm check:budget`, `pnpm check:network` (all pass).
+- **Engine reuse:** the site imports `src/core/index.ts` through the `@catchline/core` alias. No
+  extension API is reachable from the core, so no shim was needed; the only adapter is
+  `site/src/engine/oracle.ts` (a `StyleOracle` for pasted pages, which have no layout). The site also
+  imports `src/overlay/model.ts` and `src/overlay/share-render.ts` (aliases `@catchline/overlay-model`,
+  `@catchline/share-render`) so the web app produces the extension's share PNG. If the overlay owner
+  moves or changes them, update `site/src/app/share.ts` only.
+- **Build output** goes to `.output/site/` (not `site/dist`) so the root ESLint and Prettier, which
+  ignore `.output/`, never see generated files. The root `pnpm lint` does lint `site/` sources.
+- **No WebGL** on the landing page (DESIGN.md decision); the budget script fails the build if it
+  appears. Measured on a throttled mobile profile: landing LCP 690 ms, app LCP 867 ms, CLS 0.
+- Open: accuracy panel says "not yet measured" (no `corpus/report.json`), no store or repository
+  links exist yet, landing copy describes the full extension and should be re-checked once the
+  overlay is built.
+
 ## Next stage: start here
 
-1. Overlay (React, Shadow DOM, on-demand injection): card, tether, flight, Show all rail, using the
-   state in `src/core/state/*` and the tokens in `src/ui/tokens.css`. Call `registerFonts` first.
-2. Real popup, options and welcome pages from DESIGN.md.
-3. Capture the real-page corpus and write the scorer (SPEC section 11, ADR section 8); then tune
+1. Capture the real-page corpus and write the scorer (SPEC section 11, ADR section 8); then tune
    rules and thresholds against it only.
-4. `size-limit` budgets, and cut the scanner bundle below 22 kB gzip.
-5. Re-check DESIGN.md against the built UI and update it (Stage 1 wrote it before any UI existed).
+2. `size-limit` budgets, and cut the scanner bundle below 22 kB gzip.
+3. Pixel golden for the share PNG; Firefox manual smoke; F12 if wanted.
+4. DESIGN.md still matches the built UI where checked (tokens, states, flight timings); the Appendix B
+   unchecked boxes (poster, OG card, landing screenshots) belong to the site and capture work.

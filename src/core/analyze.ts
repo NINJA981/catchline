@@ -17,6 +17,8 @@ export interface Analysis {
 export interface AnalyzeOptions {
   /** Force a family instead of guessing from page text. */
   family?: Family | 'unknown';
+  /** Scan this subtree instead of the whole body (the welcome page specimen). */
+  root?: Element;
 }
 
 // Price, rate or percentage in the claim itself: "$0/mo", "0% intro APR", "50% off".
@@ -27,7 +29,7 @@ export function analyze(
   oracle: StyleOracle,
   options: AnalyzeOptions = {},
 ): Analysis {
-  const root = doc.body as HTMLElement | null;
+  const root = (options.root ?? doc.body) as Element | null;
   if (!root) return { family: 'unknown', catches: [], footnotes: new Map() };
   const family = options.family ?? guessFamily(root.textContent).family;
   const markers = scanMarkers(root, { family });

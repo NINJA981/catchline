@@ -1,0 +1,532 @@
+/*
+ * Shared component styles (DESIGN.md Components). Plain CSS on the design tokens so the same classes
+ * style extension pages (popup, options, welcome) and the shadow-root overlay. Everything is px:
+ * host pages change the root font size. No raw colors here: tests/unit/guards/tokens.test.ts.
+ */
+
+/* The root every Catchline surface sits in. Sets every inherited text property explicitly, because
+   a host page can style the shadow host (`* { color: red !important }`) and children inherit it. */
+.cl-root {
+  font-family: var(--cl-font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 20px;
+  letter-spacing: 0;
+  word-spacing: 0;
+  text-transform: none;
+  text-indent: 0;
+  text-align: start;
+  text-shadow: none;
+  white-space: normal;
+  direction: ltr;
+  color: var(--cl-ink);
+  font-synthesis: none;
+  font-variant-ligatures: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cl-rule-strong) transparent;
+}
+.cl-root *,
+.cl-root *::before,
+.cl-root *::after {
+  box-sizing: border-box;
+}
+.cl-root :focus-visible {
+  outline: 2px solid var(--cl-prussian);
+  outline-offset: 2px;
+}
+.cl-root ::selection {
+  background: var(--cl-prussian-wash);
+}
+:where(.cl-root) button {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+}
+:where(.cl-root) :is(h1, h2, h3, p) {
+  margin: 0;
+}
+:where(.cl-root) :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+:where(.cl-root) p {
+  text-wrap: pretty;
+}
+
+/* Mono figures: every amount, duration, rate and offset (DESIGN.md "The Figures Are Mono Rule"). */
+.cl-fig {
+  font-family: var(--cl-font-mono);
+  font-size: 0.92em;
+  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* Buttons: rect grammar, 6px radius. Hover changes color only; press scales to 0.97. */
+.cl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--cl-sheet);
+  color: var(--cl-ink);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--cl-rule-strong);
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+.cl-btn:hover {
+  background: var(--cl-sheet-2);
+}
+.cl-btn:active {
+  transform: scale(0.97);
+}
+.cl-btn:disabled,
+.cl-btn[aria-disabled='true'] {
+  cursor: default;
+  opacity: 1;
+  color: var(--cl-ink-muted);
+  background: var(--cl-sheet-2);
+  box-shadow: 0 0 0 1px var(--cl-rule);
+  transform: none;
+}
+.cl-btn--primary {
+  background: var(--cl-prussian);
+  color: var(--cl-on-prussian);
+  box-shadow: none;
+}
+.cl-btn--primary:hover {
+  background: var(--cl-prussian-deep);
+}
+.cl-btn--primary:disabled {
+  background: var(--cl-sheet-2);
+  color: var(--cl-ink-muted);
+  box-shadow: 0 0 0 1px var(--cl-rule);
+}
+.cl-btn--ghost {
+  height: 28px;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--cl-ink-muted);
+  box-shadow: none;
+}
+.cl-btn--ghost:hover {
+  background: var(--cl-sheet-2);
+  color: var(--cl-ink);
+}
+.cl-btn svg,
+.cl-icon svg,
+.cl-tag svg,
+.cl-chip svg {
+  flex: none;
+}
+.cl-btn--block {
+  width: 100%;
+}
+
+/* Icon buttons: 28px, label in aria-label, tooltip carries the shortcut. */
+.cl-iconbtn {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--cl-ink-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+.cl-iconbtn:hover {
+  background: var(--cl-sheet-2);
+  color: var(--cl-ink);
+}
+.cl-iconbtn:active {
+  transform: scale(0.97);
+}
+.cl-iconbtn[data-done='true'] {
+  color: var(--cl-success);
+}
+
+/* Tooltip: appears after 500ms on hover (pointer: fine) and at once on keyboard focus. */
+.cl-tipwrap {
+  position: relative;
+  display: inline-flex;
+}
+.cl-tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--cl-ink);
+  color: var(--cl-ledger-paper);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 2px);
+  transition:
+    opacity var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+.cl-tip .cl-key {
+  background: var(--cl-ink-muted);
+  color: var(--cl-ledger-paper);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cl-tipwrap:hover > .cl-tip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 500ms;
+  }
+}
+.cl-tipwrap:focus-within > .cl-tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Chip: Sheet 2, 4px radius, 24px tall. A kind glyph in Ink Muted, figures in mono. */
+.cl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 24px;
+  padding: 2px 8px 2px 6px;
+  border-radius: 4px;
+  background: var(--cl-sheet-2);
+  color: var(--cl-ink);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.cl-chip svg {
+  color: var(--cl-ink-muted);
+}
+.cl-chip .cl-fig {
+  font-weight: 400;
+}
+.cl-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cl-chip--more {
+  padding: 2px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--cl-ink-muted);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--cl-rule);
+}
+.cl-chip--more:hover {
+  background: var(--cl-sheet-2);
+  color: var(--cl-ink);
+}
+
+/* Keycap. */
+.cl-key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--cl-sheet-2);
+  color: var(--cl-ink-muted);
+  font-family: var(--cl-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0;
+  box-shadow: inset 0 -1px 0 var(--cl-rule-strong);
+  transition:
+    transform 120ms var(--ease-out),
+    box-shadow 120ms var(--ease-out),
+    background-color 120ms var(--ease-out);
+}
+.cl-key.is-pressed {
+  transform: translateY(1px);
+  box-shadow: inset 0 0 0 var(--cl-rule-strong);
+  background: var(--cl-rule);
+  color: var(--cl-ink);
+}
+.cl-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Toggle: the only full-radius shape besides the marker ring. */
+.cl-toggle {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--cl-rule-strong);
+  cursor: pointer;
+  transition: background-color var(--dur-2) var(--ease-out);
+}
+.cl-toggle[aria-checked='true'] {
+  background: var(--cl-prussian);
+}
+.cl-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--cl-sheet);
+}
+.cl-toggle[aria-checked='true'] .cl-toggle__thumb {
+  background: var(--cl-on-prussian);
+}
+.cl-toggle:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+/* The hit area is 24px tall even though the track is 18px. */
+.cl-toggle::before {
+  content: '';
+  position: absolute;
+  inset: -3px -2px;
+}
+
+/* Segmented control for 2 to 3 mutually exclusive options. */
+.cl-seg {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--cl-sheet-2);
+  box-shadow: inset 0 0 0 1px var(--cl-rule);
+}
+.cl-seg button {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--cl-ink-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+.cl-seg button:hover {
+  color: var(--cl-ink);
+}
+.cl-seg button[aria-checked='true'] {
+  background: var(--cl-sheet);
+  color: var(--cl-ink);
+  box-shadow:
+    0 0 0 1px var(--cl-rule-strong),
+    0 1px 2px var(--cl-rule);
+}
+
+/* Confidence tag: words, never a score. */
+.cl-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--cl-ink-muted);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+.cl-tag[data-level='matched'] svg {
+  color: var(--cl-success);
+}
+
+/* State panel: what happened, then what to do. */
+.cl-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--cl-sheet-2);
+  color: var(--cl-ink);
+}
+.cl-panel p {
+  color: var(--cl-ink-muted);
+}
+.cl-panel--warning {
+  background: var(--cl-warning-wash);
+}
+.cl-panel--warning p,
+.cl-panel--warning .cl-panel__title {
+  color: var(--cl-warning);
+}
+.cl-panel--danger {
+  background: var(--cl-danger-wash);
+}
+.cl-panel--danger p,
+.cl-panel--danger .cl-panel__title {
+  color: var(--cl-danger);
+}
+.cl-panel--success {
+  background: var(--cl-success-wash);
+}
+.cl-panel--success p,
+.cl-panel--success .cl-panel__title {
+  color: var(--cl-success);
+}
+.cl-panel__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.cl-panel__head svg {
+  margin-top: 2px;
+  flex: none;
+}
+
+/* Skeleton: exact boxes of the layout it stands in for. No gradient, a quiet opacity breath. */
+.cl-skel {
+  border-radius: 4px;
+  background: var(--cl-sheet-2);
+  animation: cl-breath 1.4s var(--ease-in-out) infinite;
+}
+@keyframes cl-breath {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* The fine print, restored to reading size, in the merchant's own words. */
+.cl-fine {
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: var(--cl-ledger-paper);
+  box-shadow: var(--cl-shadow-e1);
+  color: var(--cl-ink);
+  font-size: 13px;
+  line-height: 20px;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.cl-fine mark {
+  background: var(--cl-prussian-wash);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  margin: 0 -1px;
+}
+.cl-fine--scroll {
+  max-height: 176px;
+  overflow-y: auto;
+}
+
+/* Disclosure link-button ("Show all offer details (612 words)"). */
+.cl-disclose {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--cl-prussian-ink);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--dur-1) var(--ease-out);
+}
+.cl-disclose:hover {
+  text-decoration-color: currentColor;
+}
+.cl-disclose svg {
+  transition: transform var(--dur-3) var(--ease-out);
+}
+.cl-disclose[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.cl-muted {
+  color: var(--cl-ink-muted);
+}
+.cl-subtle {
+  color: var(--cl-ink-subtle);
+}
+.cl-caption {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.005em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-skel {
+    animation: none;
+  }
+  .cl-btn,
+  .cl-iconbtn,
+  .cl-toggle,
+  .cl-key,
+  .cl-disclose svg {
+    transition-duration: 0.01ms;
+  }
+  .cl-btn:active,
+  .cl-iconbtn:active {
+    transform: none;
+  }
+}
+[data-motion='reduce'] .cl-skel {
+  animation: none;
+}
+[data-motion='reduce'] .cl-btn,
+[data-motion='reduce'] .cl-iconbtn,
+[data-motion='reduce'] .cl-toggle,
+[data-motion='reduce'] .cl-key,
+[data-motion='reduce'] .cl-disclose svg {
+  transition-duration: 0.01ms;
+}

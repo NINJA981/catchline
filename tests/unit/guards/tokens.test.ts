@@ -7,10 +7,10 @@ import { BADGE_BACKGROUND, BADGE_TEXT } from '../../../src/adapters/badge';
 
 const ROOT = join(import.meta.dirname, '..', '..', '..');
 const design = readFileSync(join(ROOT, 'DESIGN.md'), 'utf8');
-const css = readFileSync(join(ROOT, 'src', 'ui', 'tokens.css'), 'utf8').replace(
-  /\/\*[\s\S]*?\*\//g,
-  '',
-);
+const css = ['base.tokens.css', 'tokens.css']
+  .map((f) => readFileSync(join(ROOT, 'src', 'ui', f), 'utf8'))
+  .join('\n')
+  .replace(/\/\*[\s\S]*?\*\//g, '');
 
 /** Whitespace and trailing zeros do not count: Prettier writes 0.40 as 0.4 in CSS. */
 const norm = (v: string) =>

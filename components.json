@@ -1,0 +1,25 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/ui/app.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@/ui/components",
+    "utils": "@/ui/cn",
+    "ui": "@/ui/components",
+    "lib": "@/ui",
+    "hooks": "@/ui/hooks"
+  },
+  "iconLibrary": "lucide",
+  "registries": {
+    "@motion-primitives": "https://motion-primitives.com/c/{name}.json",
+    "@animate-ui": "https://animate-ui.com/r/{name}.json",
+    "@magicui": "https://magicui.design/r/{name}.json"
+  }
+}

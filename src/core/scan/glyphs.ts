@@ -44,7 +44,7 @@ export function normalizeSymbolRun(run: string): SymbolGlyph | null {
 }
 
 /**
- * Markerless escape hatches (picks.json). Scanned on every page family.
+ * Markerless escape hatches (SPEC section 4.1). Scanned on every page family.
  * Ordered longest first so "Some exclusions apply" wins over "exclusions apply".
  */
 export const ESCAPE_PHRASES = [

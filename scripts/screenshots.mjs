@@ -1,5 +1,5 @@
 /* global chrome */
-// Visual QA captures (DESIGN_BIBLE section 9.1): the built extension in real Chromium, at 375, 768
+// Visual QA captures: the built extension in real Chromium, at 375, 768
 // and 1440 px, light and dark, saved to docs/screenshots/. Run `pnpm build` first.
 //
 //   node scripts/screenshots.mjs [overlay|host|popup|states|pages|strip|all]
@@ -323,7 +323,7 @@ if (want('popup')) {
 }
 
 if (want('states')) {
-  // State sheet (bible 9.1 item 2): rest, hover, focus-visible, pressed and disabled on the popup's
+  // State sheet: rest, hover, focus-visible, pressed and disabled on the popup's
   // controls, one sheet per theme. Real input events, so :hover, :focus-visible and :active are real.
   for (const scheme of SCHEMES) {
     const tab = await context.newPage();

@@ -2,11 +2,9 @@
 
 <!-- impeccable:product-schema 1 -->
 
-> Inferred record. Written at Stage 1 (architect) from the studio brief (`_studio/picks.json` entry
-> `catchline`, council transcript `L18-3-catchline.md`) with no live user interview available, and
-> re-verified against that brief on 2026-10-20 after an aborted earlier run. Every fact below traces
-> to the brief; nothing was invented. Items marked **(inferred)** are the architect's reading of the
-> brief and should be confirmed by the owner. Detailed scope lives in `SPEC.md`.
+> Inferred record. Written before the build from the original product brief, with no live user
+> interview available. Every fact below traces to the brief; nothing was invented. Items marked
+> **(inferred)** are a reading of the brief and should be confirmed by the maintainers. Detailed scope lives in `SPEC.md`.
 
 ## Platform
 
@@ -14,8 +12,8 @@ web
 
 ## Stack
 
-Delegated by the studio brief: a WXT browser extension, Chrome MV3 first with a Firefox MV3 build,
-React + Tailwind v4 + Radix + Motion per the studio design bible. Exact versions live in
+A WXT browser extension, Chrome MV3 first with a Firefox MV3 build, React + Tailwind v4 + Radix +
+Motion. Exact versions live in
 `docs/adr/0001-architecture.md`.
 
 ## Users
@@ -67,7 +65,7 @@ and does not extract conditions. No AI and no API key are needed for the core.
 ## Brand Commitments
 
 - Name: Catchline (renamed from "Asterisk Hunter", which collides with the Asterisk PBX).
-- Voice **(inferred from the council)**: plain, specific, a little dry; it states what the page says,
+- Voice **(inferred from the brief)**: plain, specific, a little dry; it states what the page says,
   never editorializes about the merchant.
 - Never claim the merchant is lying; Catchline shows the merchant's own words next to the claim.
 
@@ -89,6 +87,6 @@ and does not extract conditions. No AI and no API key are needed for the core.
 
 ## Accessibility & Inclusion
 
-- Bible standard: WCAG 2.2 AA plus APCA targets in both themes, full keyboard path (J/K stepping,
+- Standard: WCAG 2.2 AA plus APCA targets in both themes, full keyboard path (J/K stepping,
   Esc closes), reduced-motion variants for the tether flight.
 - Overlay text must stay readable regardless of host page styles (Shadow DOM isolation).

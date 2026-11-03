@@ -439,7 +439,7 @@
   white-space: nowrap;
 }
 
-/* Narrow viewports: the rail becomes a bottom sheet (DESIGN.md Layout, bible M2 geometry). */
+/* Narrow viewports: the rail becomes a bottom sheet (DESIGN.md Layout). */
 @media (max-width: 899px) {
   .cl-rail {
     top: auto;

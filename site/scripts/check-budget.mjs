@@ -1,4 +1,4 @@
-// Budget gate for the built site (bible 11.3 B1/B2, DESIGN.md Landing Page 3D plan).
+// Budget gate for the built site (DESIGN.md Landing Page 3D plan).
 //   node scripts/check-budget.mjs   (after `pnpm build`)
 // Initial JS per page = the entry module plus the chunks it imports statically (what the browser
 // must download before the page works). Lazy chunks (the sample pages) are listed, not counted.
@@ -9,7 +9,7 @@ import { dirname, join, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const dist = resolve(import.meta.dirname, '../../.output/site');
-const LIMIT_INITIAL_JS_GZ = 120 * 1024; // landing initial JS, bible 11.3
+const LIMIT_INITIAL_JS_GZ = 120 * 1024; // landing initial JS, DESIGN.md budgets
 const LIMIT_APP_INITIAL_JS_GZ = 120 * 1024;
 const LIMIT_POSTER_FREE = 0; // no 3D assets at all
 

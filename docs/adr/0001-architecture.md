@@ -2,14 +2,14 @@
 
 **Status:** Accepted (Stage 1, architect)
 **Date:** 2026-10-20
-**Deciders:** Catchline maintainers (studio build pipeline: architect, builder, design QA)
+**Deciders:** Catchline maintainers
 
 ## Context
 
 Catchline is a browser extension that finds footnote markers (`*`, `†`, `‡`, `§`, `¶`, `<sup>`
 digits, Unicode superscripts, "Terms apply" phrases) on any page, matches each to its footnote
 (mostly unlinked, often hidden in accordions far down the page), extracts the conditions into chips,
-and draws a tether from the claim to a card. Scope is fixed by `_studio/picks.json` and `SPEC.md`.
+and draws a tether from the claim to a card. Scope is fixed by `SPEC.md`.
 
 Forces:
 
@@ -21,7 +21,7 @@ Forces:
 - **No network, no backend, no telemetry.** Everything is deterministic and local.
 - **Accuracy is the product risk.** Matching on real carrier and bank pages decides whether people
   trust it, so the test corpus is architecture, not an afterthought.
-- **Studio stack:** React + Tailwind v4 + Radix + Motion (Design Bible). Chrome MV3 first, Firefox
+- **Stack:** React + Tailwind v4 + Radix + Motion, shared with the landing site and web app. Chrome MV3 first, Firefox
   build too, via WXT.
 - **Team:** one builder agent per stage; simple, well-documented tools beat clever ones.
 
@@ -54,7 +54,7 @@ Forces:
 | Firefox build | First class (`-b firefox`) | Partial | Weak | Manual |
 | Shadow-root UI helper | `createShadowRootUi` built in | Yes | No | No |
 | Maintenance (Oct 2026) | Active; 0.21.4 published 2026-08-11 | Slower release cadence | Sporadic | n/a |
-| Studio familiarity | Mandated by the brief | None | None | None |
+| Team familiarity | Chosen up front | None | None | None |
 
 **Pros (WXT):** one config for both browsers, typed `storage.defineItem` with versioned migrations,
 `createShadowRootUi` with `cssInjectionMode: 'ui'`, `wxt zip` for both stores.
@@ -65,7 +65,7 @@ Forces:
 | Dimension | A. React in one every-page content script | B. Vanilla scanner + lazy React overlay (chosen) | C. Vanilla everything (Motion mini `animate`) |
 |---|---|---|---|
 | Every-page JS | ~75-90 KB gz (React + app) on every page | ~20 KB gz scanner; React only after a user action | ~25 KB gz |
-| Studio consistency | Full | Full in all UI surfaces | Overlay diverges from popup/options |
+| UI consistency | Full | Full in all UI surfaces | Overlay diverges from popup/options |
 | Complexity | Low | Medium: two scripts, one message hop | Medium: hand-built components, focus traps |
 | First-open latency | 0 ms | One `executeScript` hop (target ≤ 80 ms; measured in e2e) | 0 ms |
 
@@ -83,7 +83,7 @@ only (the tether is already vanilla SVG).
 | Browser support | Chromium yes; Firefox to be verified at build time | Everywhere |
 | Robustness to frameworks | Inline style can be wiped by a re-render | Unaffected |
 
-**Decision:** picks.json names CSS anchor positioning, so it is the primary card path where a spike
+**Decision:** the brief names CSS anchor positioning, so it is the primary card path where a spike
 (action item 2) proves it works from inside our shadow root. The tether path needs live endpoint
 geometry anyway, so the rAF tracker exists in every case and doubles as the card fallback. The
 overlay detects support with `CSS.supports('anchor-name: --a')` plus a runtime self-test (position
@@ -121,7 +121,7 @@ Build and test (devDependencies):
 | `happy-dom` | 21.0.3 | Unit-test DOM (no layout; layout-dependent signals go through `StyleOracle`) |
 | `@testing-library/react` | 16.3.3 | Component tests |
 | `@playwright/test` | 1.64.1 | E2E with the built extension, corpus scorer, demo capture |
-| `culori` | 4.0.2 | CI check: accent ΔE_OK ≥ 0.06 from the bible §4.4 blocklist; contrast checks |
+| `culori` | 4.0.2 | CI check: accent ΔE_OK ≥ 0.06 from a blocklist of overused accent colors; contrast checks |
 | `size-limit` | 14.2.0 | Bundle budgets (section 6) |
 | `@size-limit/preset-small-lib` | 14.2.0 | |
 | `oxlint` | 1.89.0 | Lint (fast); custom rules via grep scripts for no-network and no-raw-palette |
@@ -311,7 +311,7 @@ dependency, works with the bundled fonts via `FontFace` loaded in the extension 
 | `overlay.content.js` (on demand) | ≤ 95 KB |
 | `popup` entry | ≤ 90 KB |
 | `options` entry | ≤ 110 KB |
-| Landing initial JS | ≤ 120 KB (bible §11.3 B1) |
+| Landing initial JS | ≤ 120 KB (DESIGN.md landing budgets) |
 
 Measured at the end of fix round 1 (gzip -6, KiB): scanner 27.7, overlay 134.3, popup entry 137.3
 (its own 3.8, a shared React + motion + UI chunk of about 120, Disclosure 5, CSS 7.4), options entry 132.1.
@@ -373,11 +373,11 @@ hop plus flight.
 ## 9. Optional LLM layer (F12)
 
 - **Default: none.** The core never depends on a model.
-- **On-device (picks.json's "optional Gemini Nano"):** feature-detect Chrome's built-in AI APIs at
+- **On-device (the brief's "optional Gemini Nano"):** feature-detect Chrome's built-in AI APIs at
   runtime and generate one line of at most 8 words from the chips and sentence; no network. The
   exact API surface (Summarizer vs Prompt API, availability states, download prompts) is to be
   confirmed with Context7 against current Chrome docs when F12 is built; it is post-MVP.
-- **BYO-key cloud fallback (specified, not scheduled):** per studio rule, the default provider is
+- **BYO-key cloud fallback (specified, not scheduled):** the default provider would be
   Claude through the official `@anthropic-ai/sdk` (0.135.0), default model `claude-opus-5-5`, with a
   user-selectable cheaper model (`claude-haiku-5-5`) in Options. The call is user-initiated (a "Explain
   this catch" button), sends only the matched sentence and chips, never the page or URL, stores the

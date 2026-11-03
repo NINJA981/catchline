@@ -27,7 +27,7 @@ pnpm check:budget        # initial JS per page, no WebGL (run after build)
 pnpm check:network       # no network primitive or external URL in the build (run after build)
 ```
 
-Playwright browsers on this machine live in `X:\DevCache\ms-playwright` (`PLAYWRIGHT_BROWSERS_PATH`).
+Playwright uses its default browser cache; set `PLAYWRIGHT_BROWSERS_PATH` to use another folder.
 `node scripts/shots.mjs <dir>` captures every state at 375 / 768 / 1440, light and dark, reduced
 motion and no JavaScript. `node scripts/make-assets.mjs` regenerates the PWA icons and `og.png`
 (the OG card is the web app's real "Save image" output for the carrier specimen).
@@ -57,7 +57,7 @@ flattens the analysed page into readable blocks so markers and footnotes can be 
 ## Decisions
 
 - **No WebGL.** DESIGN.md "Landing Page 3D / Immersive Plan" decided CSS and SVG only: the idea is a
-  line between two points in a document, which is flat. So the bible 11.4 tiers collapse to one:
+  line between two points in a document, which is flat. So the rendering tiers collapse to one:
   every visitor gets the poster (server HTML, settled specimen), and there is no 3D chunk, no canvas
   and no GPU detection to run. Reduced motion keeps the settled frame (no autoplay; Replay fades
   instead of flying). No JavaScript shows the same frame without the tether. No WebGL means no

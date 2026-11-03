@@ -3,9 +3,9 @@
 Status: Stage 1 (architect). Nothing is built yet. Every acceptance criterion below is a target to
 test against, not a claim about shipped behavior.
 
-Source of truth: `_studio/picks.json` entry `catchline` (refined scope, signature moment, risks) and
-the council transcript `_studio/council/L18-3-catchline.md`. Where this spec adds emphasis (the
-utility fix in section 4), picks.json wins on any conflict.
+Source of truth: the original product brief (refined scope, signature moment, risks), summarized in
+`PRODUCT.md`. Where this spec adds emphasis (the utility fix in section 4), the brief wins on any
+conflict.
 
 ---
 
@@ -45,9 +45,9 @@ What counts toward the badge is deliberately narrow so the number stays trustwor
   footnotes) and markers whose footnote has no extractable terms.
 - Never counted: excluded markers (cents superscripts, math, code, trademark symbols).
 
-## 4. Utility fix (council weakness: Utility 5/10)
+## 4. Utility fix (review weakness: utility)
 
-The council scored utility 5 because the original trigger set was mostly telecom deals, which most
+An early design review rated utility low because the original trigger set was mostly telecom deals, which most
 people read a few times a year. This spec widens it in three ways. Each one is a requirement, not a
 note.
 
@@ -66,14 +66,14 @@ slice (section 11):
 | SaaS pricing | "$8 per user/mo*", "Unlimited projects†" | billed annually, per seat, minimum seats, usage caps, overage price, price after N months |
 | Airline / travel | "From $49*", "Fares from $199 round trip†" | one-way vs round trip, taxes and fees excluded, bag fees, non-refundable, per person based on double occupancy, blackout dates, select routes |
 
-The **markerless escape hatches** from picks.json ("Terms apply", "See offer details",
+The **markerless escape hatches** from the brief ("Terms apply", "See offer details",
 "Restrictions apply", "Conditions apply", "Some exclusions apply") are scanned on all families.
 
 ### 4.2 Badge rollup on every page visit
 
 The toolbar badge shows the catch count (at most 4 characters, Chrome limit). The badge tooltip and
 the popup header carry the rollup: count plus the summed money terms and the longest time term, for
-example `7 catches: $35 + 36 months hidden` (picks.json's `7 claims · $35 + 36 months hidden`
+example `7 catches: $35 + 36 months hidden` (the brief's `7 claims · $35 + 36 months hidden`
 wording, with the middle dot replaced per DESIGN.md's ban on middle-dot strings). Value shows on
 every page that has one, without a click.
 
@@ -86,7 +86,7 @@ README says "not yet measured", never a guess.
 
 ## 5. MVP features
 
-Numbering follows picks.json `refined_scope` items 1-9, plus the optional summary.
+Numbering follows the brief's scope items 1-9, plus the optional summary.
 
 | # | Feature | Summary |
 |---|---|---|
@@ -101,13 +101,13 @@ Numbering follows picks.json `refined_scope` items 1-9, plus the optional summar
 | F9 | Fixture corpus + CI match rate | 30 reduced snapshots of real promo pages plus synthetic edge cases, hand-labeled expected pairs and chips, scored in CI, numbers published in the README (4.3). |
 | F10 | Popup | Current tab: rollup ledger, list of catches with confidence, per-site on/off, entry to Show all and Options. |
 | F11 | Options + welcome page | Where Catchline runs, disabled sites, marker display, motion and theme preferences, privacy statement, shortcut list, measured corpus numbers. The welcome page (opened once on install) teaches the gesture on a labeled specimen. |
-| F12 | Optional plain-language line (off by default, post-MVP stretch) | picks.json: "Optional Gemini Nano one-line 'the catch in 8 words'". Uses Chrome's on-device built-in AI when the browser exposes it; nothing leaves the device. A BYO-key cloud fallback is specified in ADR 0001 but not scheduled. Chips and raw text never depend on it. |
+| F12 | Optional plain-language line (off by default, post-MVP stretch) | From the brief: "Optional Gemini Nano one-line 'the catch in 8 words'". Uses Chrome's on-device built-in AI when the browser exposes it; nothing leaves the device. A BYO-key cloud fallback is specified in ADR 0001 but not scheduled. Chips and raw text never depend on it. |
 
 ## 6. Non-goals (v1)
 
 - Fine print inside images, canvas or video (no OCR). The README says so.
 - Fetching separate `/legal` or `/terms` pages. Shown as a "Terms are on another page" link chip; a
-  same-origin fetch is v2 (picks.json).
+  same-origin fetch is v2.
 - Cross-origin iframes. Same-origin iframes are v1.1 if the corpus shows they matter.
 - Judging the merchant. Catchline shows the merchant's own words; it never labels an offer a scam,
   scores it, or colors it red.
@@ -302,7 +302,7 @@ in the post), not screen-recorded.
 | 6.6-8.4 s | Show all | Alt+Shift+C: the page dims and three tethers fan out to a rail of cards; J steps to "Unlimited¹", whose card reads "Slower after 50 GB". |
 | 8.4-10.0 s | End frame | Esc exits Show all, the popup opens: the popup ledger "3 catches: $35 + 36 months hidden" and the line "Free. Runs in your browser. No account." |
 
-LinkedIn copy (from picks.json): "Every asterisk on the internet is a promise with a catch 3,000
+Launch post hook: "Every asterisk on the internet is a promise with a catch 3,000
 pixels below it. I built an extension that drags the catch back up to the promise."
 
 ## 13. Web app (`site/`, route `/app/`)

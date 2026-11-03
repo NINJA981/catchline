@@ -1,7 +1,7 @@
 # Catchline landing page
 
 Mode: **Persuade**. Tokens, type and motion come from `DESIGN.md`; this file covers narrative, hero
-concept and copy. Structure follows 3D_INSPIRATION §3.1: five beats in at most 7 viewports (desktop
+concept and copy. Structure: five beats in at most 7 viewports (desktop
 900px tall). No WebGL (DESIGN.md, Landing Page 3D plan).
 
 Truth rules for every line below:
@@ -50,7 +50,7 @@ The first viewport is the product working, at poster scale.
 - **Mobile (375):** H1 at 56px, lead, CTA, then the specimen frame full width at 4:5 with the card
   docked below the claim instead of beside it.
 
-The muted 3-second test (3D_INSPIRATION §3.2): with no sound and no scroll, a viewer sees a footnote
+The muted 3-second test: with no sound and no scroll, a viewer sees a footnote
 fly up to "$0/mo*" and turn into three cost chips. That is the whole pitch.
 
 ## The five beats
@@ -98,7 +98,7 @@ alternates; no cards grid.
 ### Beat 4. The how (viewport 6)
 
 H2: **How it works, in your browser.** An SVG diagram (DOM text, not an image of text), four steps
-left to right with a number in each step, following the README template (3D_INSPIRATION §3.7):
+left to right with a number in each step, matching the README:
 
 1. **Find:** "Scans text for *, †, ‡, §, ¶ and superscript numbers, and skips prices like
    $49<sup>99</sup>, math and code."

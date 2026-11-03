@@ -74,7 +74,7 @@ export function ShowAll({
     return out;
   }, [models, state.restoreScrollY]);
 
-  // Selection side effects: bring the claim and its entry into view, no animation (bible P1).
+  // Selection side effects: bring the claim and its entry into view, no animation.
   useLayoutEffect(() => {
     if (!selected) return;
     const model = models.find((m) => m.id === selected);

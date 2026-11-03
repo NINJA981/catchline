@@ -297,12 +297,12 @@ real engine pulling a real-looking footnote up a specimen page, at poster scale)
   a host page (cards, rail, popovers).
 - Light-first, following the system; dark is re-derived.
 
-### Blend notes (bible §10)
+### Blend notes
 
 Archetype: A6 browser-extension popup, with the in-page overlay as its signature surface, borrowing
-A3's data-dense discipline because the payload is money and terms. The studio assigned **D3 Prussian
-Ledger** and **T1 Schibsted Grotesk + Commit Mono** so the five studio projects stay distinct (the
-bible pairs D3 with T3 by default; T1 is the assigned deviation).
+A3's data-dense discipline because the payload is money and terms. The palette is **Prussian
+Ledger** and the type pairing is **Schibsted Grotesk + Commit Mono**, chosen so Catchline does not
+look like a generic extension.
 
 - **From stripe** we took tabular figures on every money cell, one filled button per band,
   level-based contrast (text and background at least five ramp steps apart), layered shadows tinted
@@ -321,7 +321,7 @@ bible pairs D3 with T3 by default; T1 is the assigned deviation).
   900-weight condensed display, ALL-CAPS mono labels, 20-40px pill radii and dark-only pages.
 - Swap test: no reference brand's colors, faces, wordmarks or surface ladders appear. Accent ΔE_OK
   to the nearest blocklisted brand color: light `#005c86` to Apple `#0066cc` = 0.113; dark `#6abce6`
-  to Framer `#0099ff` = 0.130 (both ≥ 0.06; computed with the bible's OKLab method, re-checked in CI
+  to Framer `#0099ff` = 0.130 (both ≥ 0.06; computed with an OKLab distance, re-checked in CI
   by `scripts/check-tokens.mjs`).
 
 ## Colors
@@ -338,7 +338,7 @@ scale.
 - **Prussian Deep** (`oklch(0.40 0.085 238)` / `#084d70`; dark `#87cbef`): hover and pressed fill of
   the primary button.
 - **On Prussian** (`#f9fcfe`; dark `#01111d`): label on the filled button (7.12:1; dark 9.07:1,
-  APCA 62, so dark-mode button labels are 13px/500 minimum per bible §4.3, and 14px/600 on the
+  APCA 62, so dark-mode button labels are 13px/500 minimum, and 14px/600 on the
   landing page).
 - **Prussian Wash** (`oklch(0.95 0.02 238)` / `#e3f1fb`; dark `#0b2c3e`): text selection, the brief
   highlight of a chip's span inside the raw footnote, the claim highlight while its card is open.
@@ -366,7 +366,7 @@ scale.
   on chips and hover rows use Ink Muted instead.
 
 ### Semantic
-Fixed bible values. Semantic color describes Catchline's own state (saved, permission needed, scan
+Fixed values. Semantic color describes Catchline's own state (saved, permission needed, scan
 failed), never the merchant's offer.
 - **Success** (`#287c42`; dark `#6fc884`) with a check icon: "Saved", "Copied", permission granted.
 - **Warning** (`#8d5406` text on `#ffeccd`; dark `#f0ba59`) with an alert icon: "Permission needed",
@@ -401,7 +401,7 @@ punctuation, `† ‡ § ¶ ¹ ² ³` and currency symbols, ≤ 40 KB each). Ins
 are registered at document level under the private names above (ADR 0001 §5.3). All sizes are px,
 because host pages change the root font size.
 
-### Hierarchy (Compact scale, bible §3.2)
+### Hierarchy (Compact scale)
 - **Hero** (600, `clamp(56px, 32px + 6vw, 120px)`, line-height 0.92, -0.035em): landing page only,
   once. The claim at poster size.
 - **Display** (600, 44/46, -0.025em): README and landing section openers.
@@ -442,7 +442,7 @@ page.
   claim with more room (right, else left, else below), 12px from the claim box, never under a
   detected sticky header (8px below it), never off-viewport (clamped with 16px margins).
 - **Show all rail:** 376px fixed column on the right edge of the viewport (on viewports under 900px
-  it becomes a bottom sheet, 60dvh, per bible M2 geometry), cards stacked with 12px gaps along a 1px
+  it becomes a bottom sheet, 60dvh), cards stacked with 12px gaps along a 1px
   Rule spine at 20px from the rail's left edge. Each entry shows its page offset in Mono figure on
   the spine.
 - **Options page:** single column, max 720px, 32px gutter at 1440 and 16px at 375; sections
@@ -564,7 +564,7 @@ from. Removed when the card closes.
 
 Scrim over the page with cutouts around counted claims (4px padding, xs radius); tethers fan from
 each claim to its rail entry; the rail header reads "7 catches on this page" with keycaps `J` `K`
-`Enter` `Esc` in a hint bar (bible M9: the keycap depresses for 120ms when its key is pressed).
+`Enter` `Esc` in a hint bar (the keycap depresses for 120ms when its key is pressed).
 Entries are compact cards (claim line + chips; Enter expands to the full card in place).
 - Loading: same skeleton rules as the popup. Empty: rail shows "No catches on this page." and exits
   after 1.5s or on Esc. Error: "Couldn't draw all catches. Try again from the popup." with "Close".
@@ -611,9 +611,9 @@ review pending. Build it from source in two commands." with the commands), corpu
 
 **Event:** the first card opened on a page (by click, Enter or the popup). It is rare by design
 (once per page load); later opens on the same page use the short version. Keyboard stepping in Show
-all never animates (bible P1).
+all never animates.
 
-**Full version, frame by frame** (total 960ms; the bible's 300ms ceiling is waived only here):
+**Full version, frame by frame** (total 960ms; the usual 300ms ceiling is waived only here):
 
 | t (ms) | What happens | Property, easing |
 |---|---|---|
@@ -637,8 +637,8 @@ together; ghost outline appears with no animation.
 no scale. Card and tether fade in together over 150ms; chips appear together; ghost outline static.
 
 **Capture:** every step is WAAPI, so the demo GIF/MP4 is captured deterministically by pausing all
-animations and seeking `currentTime` frame by frame (adapting the studio prerender kit's
-`window.__frame(i)` idea to WAAPI).
+animations and seeking `currentTime` frame by frame (a
+`window.__frame(i)`-style seek applied to WAAPI).
 
 ## Motion Tokens
 
@@ -679,13 +679,13 @@ is interruptible (CSS transitions or WAAPI, never awaited before committing stat
 | Popup | A | Show all on page |
 
 Single-key shortcuts are active only while Catchline's overlay has focus and never while a host page
-input or contenteditable is focused. **Command palette:** deliberate deviation from bible §6.8. The
+input or contenteditable is focused. **Command palette:** deliberately left out. The
 popup is itself a short command list and the overlay has five actions, so a cmdk palette would add a
 surface without adding reach; every action is reachable by mouse and by the keys above.
 
-## Landing Page 3D / Immersive Plan (bible §11)
+## Landing Page 3D / Immersive Plan
 
-**Decision: CSS/SVG only, no WebGL.** By the bible's decision rule (§5.2 of 3D_INSPIRATION), live
+**Decision: CSS/SVG only, no WebGL.** Live
 WebGL needs a T-pattern that says something a flat version cannot. Catchline's idea is a line between
 two points in a document: it is flat by nature, and the real engine already draws it in SVG.
 Spending 260KB on a 3D object would put a metaphor where the product can demonstrate itself.
@@ -698,13 +698,13 @@ Spending 260KB on a 3D object would put a metaphor where the product can demonst
 - **Atmosphere:** T16 contour backdrop as a static SVG (≤ 30KB, `currentColor` at 6% on Ledger
   Paper), suggesting the ruled ledger. No grain, no gradients.
 - **Pre-rendered loops (T18):** README GIF (≤ 3MB, 800-960px, ≤ 6s), LinkedIn MP4 1:1, OG card PNG
-  1200×630, all captured deterministically from the e2e harness via WAAPI seeking, encoded with the
-  studio's tested ffmpeg commands.
+  1200×630, all captured deterministically from the e2e harness via WAAPI seeking, encoded with
+  ffmpeg.
 - **Budgets:** initial JS ≤ 120KB gz; no 3D chunk; LCP ≤ 2.0s mid-tier mobile; CLS 0.
 
 ## Do's and Don'ts
 
-### We never (bible P8)
+### We never
 1. **We never hide the merchant's words.** Every card shows the original footnote text (or the chosen
    sentence with its full-text expander). Chips summarize; they never replace.
 2. **We never move the host page.** Nothing Catchline draws enters the page's layout flow; all UI

@@ -29,6 +29,19 @@ export default defineConfig({
   // CATCHLINE_OUT_DIR builds into another folder, so a build can run while a test run still uses .output.
   ...(process.env.CATCHLINE_OUT_DIR ? { outDir: process.env.CATCHLINE_OUT_DIR } : {}),
   modules: ['@wxt-dev/module-react'],
+  // The AMO sources zip holds what a reviewer needs to rebuild the extension, not images, test
+  // output or the separate site package.
+  zip: {
+    excludeSources: [
+      'docs/**',
+      'site/**',
+      'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
+      '.github/**',
+      '.impeccable/**',
+    ],
+  },
   manifestVersion: 3,
   vite: () => ({
     plugins: [tailwindcss()],

@@ -66,16 +66,22 @@ test.describe('card and tether (F5)', () => {
       const ring = await overlayBox(page, '.cl-ring');
       const card = await overlayBox(page, '.cl-card');
       const ends = await tetherEnds(page);
-      expect(ring && card && ends).toBeTruthy();
-      if (!ring || !card || !ends) return;
-      // The ring is the marker box grown by 4px sideways and 2px vertically. The tether leaves from
-      // the marker edge that faces the card, so the start point sits on one of the four edges.
-      const m = {
-        left: ring.left + 4,
-        right: ring.right - 4,
-        top: ring.top + 2,
-        bottom: ring.bottom - 2,
-      };
+      // The marker glyph's own box, measured the way the overlay measures it (a Range on the "*").
+      // The ring cannot stand in for it: on a tall line box it is a square centred on the glyph.
+      const m = await page.evaluate(() => {
+        const text = document.getElementById('claim')?.firstChild;
+        const at = text?.textContent?.lastIndexOf('*') ?? -1;
+        if (!text || at < 0) return null;
+        const r = document.createRange();
+        r.setStart(text, at);
+        r.setEnd(text, at + 1);
+        const b = r.getBoundingClientRect();
+        return { left: b.left, right: b.right, top: b.top, bottom: b.bottom };
+      });
+      expect(ring && card && ends && m).toBeTruthy();
+      if (!ring || !card || !ends || !m) return;
+      // The tether leaves from the marker edge that faces the card, so the start point sits on one
+      // of the glyph box's four edges.
       const within = (v: number, lo: number, hi: number) => v >= lo - 2 && v <= hi + 2;
       const onMarkerEdge =
         (within(ends.from.y, m.top, m.bottom) &&

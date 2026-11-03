@@ -13,10 +13,10 @@ node scripts/launch-assets.mjs
 
 | File | Size | Use |
 |---|---|---|
-| `catchline-0.1.0-chrome.zip` | built by `pnpm zip` | Chrome Web Store upload; "Load unpacked" after unzipping |
-| `catchline-0.1.0-firefox.zip` | built by `pnpm zip:firefox` | AMO upload; temporary install |
-| `catchline-0.1.0-sources.zip` | built by `pnpm zip:firefox` | AMO source submission (the build is bundled) |
-| `hero.gif` | 960 px wide | README hero, the signature moment |
+| `catchline-0.1.0-chrome.zip` | 777 kB, `pnpm zip` | Chrome Web Store upload; "Load unpacked" after unzipping |
+| `catchline-0.1.0-firefox.zip` | 778 kB, `pnpm zip:firefox` | AMO upload; temporary install |
+| `catchline-0.1.0-sources.zip` | 388 kB, `pnpm zip:firefox` | AMO source submission (the build is bundled) |
+| `hero.gif` | 960 px wide, 4 s, 358 kB | README hero, the signature moment |
 | `store-1-card.png` | 1280 x 800 | Store screenshot 1 |
 | `store-2-show-all.png` | 1280 x 800 | Store screenshot 2 |
 | `store-3-popup.png` | 1280 x 800 | Store screenshot 3 (the popup drawn over the page where it opens) |

@@ -52,7 +52,23 @@ Commits on `release/linkedin`, oldest first:
 
 ## Checks
 
-VERIFY_TABLE
+Last full run 2026-11-04 at commit `db65a2c` and later, every command through the shared RAM lock
+(`_studio/bin/heavy.sh`), single worker:
+
+| Check | Result |
+|---|---|
+| `pnpm lint` (ESLint strict type-checked + Prettier) | pass |
+| `pnpm typecheck` | pass |
+| `vitest run --maxWorkers=1 --no-file-parallelism` | pass: 520 tests |
+| site typecheck + `vitest run` (site) | pass: 42 tests |
+| `pnpm zip` / `pnpm zip:firefox` | pass (Chrome 777 kB, Firefox 778 kB, AMO sources 388 kB) |
+| `web-ext lint -s .output/firefox-mv3` | 0 errors; warnings are React DOM `innerHTML` internals |
+| `pnpm check:network` / `pnpm check:size` | pass (sizes below) |
+| `pnpm engine tests/fixtures/synthetic/carrier-specimen.html` | 3 catches: $35 + 36 months hidden |
+| `playwright test --workers=1` (extension e2e) | pass: 72 tests |
+| `pnpm build:site`, site `check:budget`, `check:network` | pass (landing 24.7 kB, app 36.9 kB gzip initial JS) |
+| site `playwright test --workers=1` (desktop + phone) | pass: 103 tests, incl. no overflow 320-1440 px |
+| `gitleaks detect --no-banner` | no leaks (all commits) |
 
 Bundle sizes (gzip -6, `pnpm check:size`): scanner 27.9 kB (target 22, ceiling 29), overlay
 134.3 kB (target 95, ceiling 140), popup entry 137.3 kB (target 90, ceiling 142), options entry

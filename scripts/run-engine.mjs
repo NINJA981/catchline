@@ -40,6 +40,11 @@ const win = new Window({
     disableIframePageLoading: true,
   },
 });
+// The engine takes the document as a parameter but uses `instanceof Element` for type checks, which
+// needs the DOM classes as globals (a browser and Vitest's happy-dom environment provide them).
+for (const name of ['Node', 'Element', 'HTMLElement', 'Text', 'Document']) {
+  globalThis[name] ??= win[name];
+}
 const doc = new win.DOMParser().parseFromString(html, 'text/html');
 
 const family = core.guessFamily(doc.body.textContent).family;

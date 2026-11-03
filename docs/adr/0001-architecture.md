@@ -21,7 +21,7 @@ Forces:
 - **No network, no backend, no telemetry.** Everything is deterministic and local.
 - **Accuracy is the product risk.** Matching on real carrier and bank pages decides whether people
   trust it, so the test corpus is architecture, not an afterthought.
-- **Stack:** React + Tailwind v4 + Radix + Motion, shared with the landing site and web app. Chrome MV3 first, Firefox
+- **Stack:** React + Tailwind v4 + Motion, shared with the landing site and web app. Chrome MV3 first, Firefox
   build too, via WXT.
 - **Team:** one builder agent per stage; simple, well-documented tools beat clever ones.
 
@@ -98,7 +98,7 @@ Runtime dependencies:
 | `react` | 19.3.1 | Popup, options, welcome, overlay, landing |
 | `react-dom` | 19.3.1 | |
 | `motion` | 14.4.0 | UI motion (`motion/react`), `MotionConfig reducedMotion="user"` |
-| `radix-ui` | 1.8.1 | Popover/Tooltip/Switch/Collapsible/Dialog primitives (portals pointed into the shadow root) |
+| ~~`radix-ui`~~ | not used | Planned for popover/switch/dialog primitives; the built UI uses its own small controls (`src/ui/components/controls.tsx`), so no portal handling is needed |
 | `lucide-react` | 1.60.0 | One icon set, 16 px, 1.5 px stroke |
 | `@fontsource-variable/schibsted-grotesk` | 5.3.0 | UI face (OFL-1.1, variable 400-900), subset and bundled |
 | `@fontsource/commit-mono` | 5.3.0 | Mono for numbers in the ledger, keycaps, IDs (OFL-1.1, static 400/500) |
@@ -266,8 +266,8 @@ must move the published numbers (section 8).
 ## 5. UI runtime details
 
 ### 5.1 Shadow DOM isolation
-`createShadowRootUi` with `cssInjectionMode: 'ui'` and WXT's default `all: initial` reset. Radix
-portals target the shadow root's `<body>` through a `PortalTarget` context (WXT FAQ pattern).
+`createShadowRootUi` with `cssInjectionMode: 'ui'` and WXT's default `all: initial` reset. No
+component renders through a portal, so everything stays inside the shadow root.
 
 ### 5.2 Units
 WXT's reset does not cover `rem`, and host pages change the root font size. All Catchline UI CSS

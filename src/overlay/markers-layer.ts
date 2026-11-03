@@ -85,7 +85,7 @@ export function createMarkerLayer(opts: {
   // move the glyphs without a scroll or resize event; follow them so the hit targets never go stale.
   const resizes = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
   resizes?.observe(document.documentElement);
-  if (document.body) resizes?.observe(document.body);
+  resizes?.observe(document.body);
   const fonts = (document as { fonts?: FontFaceSet }).fonts;
   fonts?.addEventListener('loadingdone', schedule);
 

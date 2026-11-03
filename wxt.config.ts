@@ -49,8 +49,11 @@ export default defineConfig({
       'Pulls the fine print up to the claim it qualifies. Runs in your browser; makes no network requests.',
     permissions: ['storage', 'scripting', 'activeTab'],
     host_permissions: ['<all_urls>'],
+    // Rendered from the Catchline mark by scripts/make-icons.mjs into src/public/icon/.
+    icons: { 16: 'icon/16.png', 32: 'icon/32.png', 48: 'icon/48.png', 128: 'icon/128.png' },
     action: {
       default_title: 'Catchline',
+      default_icon: { 16: 'icon/16.png', 32: 'icon/32.png' },
     },
     commands: {
       'show-all': {

@@ -12,8 +12,8 @@ web
 
 ## Stack
 
-A WXT browser extension, Chrome MV3 first with a Firefox MV3 build, React + Tailwind v4 + Radix +
-Motion. Exact versions live in
+A WXT browser extension, Chrome MV3 first with a Firefox MV3 build, React + Tailwind v4 +
+Motion (the controls are the project's own, in `src/ui/components`). Exact versions live in
 `docs/adr/0001-architecture.md`.
 
 ## Users
@@ -59,8 +59,8 @@ and does not extract conditions. No AI and no API key are needed for the core.
   `chrome.storage.local`.
 - Out of scope: fine print inside images (no OCR), and separate /legal pages (shown as a link chip;
   a same-origin fetch is v2).
-- Matching accuracy is measured on a committed fixture corpus of saved promo pages; the match rate is
-  published in the README. It is a number, not a claim.
+- Matching accuracy is to be measured on a redistributable, hand-labelled corpus and published in the
+  README as a number, not a claim. As of v0.1.0 it is not yet measured.
 
 ## Brand Commitments
 
@@ -73,8 +73,8 @@ and does not extract conditions. No AI and no API key are needed for the core.
 
 - No users, testimonials, install counts, stars or press exist yet. Future work must not fabricate any.
 - The only accuracy evidence will be the CI fixture corpus match rate, once it is measured.
-- Fixture pages are saved snapshots of real promo pages; screenshots of them must credit the source
-  site and avoid presenting it as an endorsement.
+- Fixture pages are hand-written pages for fictional companies (`tests/fixtures/README.md`). Real
+  companies' pages are never committed or shown.
 
 ## Product Principles
 

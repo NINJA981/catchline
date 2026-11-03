@@ -1,0 +1,24 @@
+name: Feature request
+description: A new marker form, chip, page type or UI improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What fine print is still hard to find or read? Give a concrete (fictional) example.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like Catchline to do
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Fits the project's rules
+      options:
+        - label: It works without any network request, account or AI model.
+          required: true

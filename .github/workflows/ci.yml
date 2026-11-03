@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
+        working-directory: site
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm test:site
+      - run: pnpm build
+      - run: pnpm build:firefox
+      - run: pnpm check:network
+      - run: pnpm check:size
+      - run: pnpm build:site
+      - run: pnpm --dir site check:budget
+      - run: pnpm --dir site check:network
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright test
+      - run: pnpm --dir site exec playwright test
+      - run: pnpm zip && pnpm zip:firefox
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catchline-builds
+          path: .output/*.zip
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: |
+            test-results/
+            site/test-results/

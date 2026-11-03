@@ -82,16 +82,32 @@ test.describe('landing', () => {
     await ctx.close();
   });
 
-  test('has no horizontal scroll at 375', async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport: { width: 375, height: 812 } });
-    const page = await ctx.newPage();
-    await page.goto('/');
-    const over = await page.evaluate(
-      () => document.documentElement.scrollWidth - window.innerWidth,
-    );
-    expect(over).toBeLessThanOrEqual(0);
-    await ctx.close();
-  });
+  for (const width of [320, 375, 768, 1100, 1440]) {
+    test(`has no horizontal scroll and an unclipped hero at ${String(width)}`, async ({
+      browser,
+    }) => {
+      const ctx = await browser.newContext({ viewport: { width, height: 900 } });
+      const page = await ctx.newPage();
+      await page.goto('/');
+      await page.evaluate(() => document.fonts.ready);
+      const over = await page.evaluate(
+        () => document.documentElement.scrollWidth - window.innerWidth,
+      );
+      expect(over).toBeLessThanOrEqual(0);
+      // Every hero phrase stays inside the hero copy column (QA r1: "next to the c" at 1440).
+      const spill = await page.evaluate(() => {
+        const col = document.querySelector('.hero__copy')?.getBoundingClientRect();
+        if (!col) return Infinity;
+        return Math.max(
+          ...Array.from(document.querySelectorAll('#hero-title .nowrap'), (s) =>
+            Math.ceil(s.getBoundingClientRect().right - col.right),
+          ),
+        );
+      });
+      expect(spill).toBeLessThanOrEqual(0);
+      await ctx.close();
+    });
+  }
 });
 
 test.describe('web app', () => {

@@ -25,6 +25,7 @@
     "typecheck": "wxt prepare && tsc --noEmit",
     "check:network": "node scripts/check-network.mjs",
     "check:size": "node scripts/check-size.mjs",
+    "engine": "node scripts/run-engine.mjs",
     "postinstall": "wxt prepare",
     "build:site": "pnpm --dir site build",
     "test:site": "pnpm --dir site typecheck && pnpm --dir site test",

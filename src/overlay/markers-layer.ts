@@ -81,6 +81,13 @@ export function createMarkerLayer(opts: {
   };
   window.addEventListener('scroll', schedule, { capture: true, passive: true });
   window.addEventListener('resize', schedule, { passive: true });
+  // The host page's own layout changes (an accordion opens, an image loads, a web font swaps in)
+  // move the glyphs without a scroll or resize event; follow them so the hit targets never go stale.
+  const resizes = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
+  resizes?.observe(document.documentElement);
+  if (document.body) resizes?.observe(document.body);
+  const fonts = (document as { fonts?: FontFaceSet }).fonts;
+  fonts?.addEventListener('loadingdone', schedule);
 
   return {
     update(catches) {
@@ -139,6 +146,8 @@ export function createMarkerLayer(opts: {
     destroy() {
       window.removeEventListener('scroll', schedule, { capture: true });
       window.removeEventListener('resize', schedule);
+      resizes?.disconnect();
+      fonts?.removeEventListener('loadingdone', schedule);
       host.remove();
       buttons.clear();
     },

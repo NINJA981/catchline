@@ -198,20 +198,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Chip labels on one line joined by a middle dot; a row that does not fit ends in an ellipsis. */
 .pop-row__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 12px;
-  height: 16px;
+  display: block;
   min-width: 0;
   overflow: hidden;
   font-size: 12px;
   line-height: 16px;
-}
-/* Only whole labels show: one that does not fit wraps out of the 16px window instead of being cut. */
-.pop-chiplabel {
-  max-width: 100%;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

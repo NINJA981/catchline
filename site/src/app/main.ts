@@ -344,8 +344,10 @@ async function run(getRaw: () => Promise<{ raw: string; label: string }>): Promi
       if (e instanceof InputError && e.kind === 'empty') {
         source.setAttribute('aria-invalid', 'true');
         source.setAttribute('aria-describedby', 'source-note result-error');
-        source.focus();
+        source.focus({ preventScroll: true });
       }
+      // The message sits under the input; on a phone that is below the fold. Bring it into view.
+      result.scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
     });
   }
 }

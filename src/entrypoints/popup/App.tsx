@@ -403,11 +403,8 @@ function CatchList({
                   {c.chipLabels.length === 0 ? (
                     <span>{c.matched ? 'No terms found' : 'No footnote found'}</span>
                   ) : (
-                    c.chipLabels.map((l) => (
-                      <span key={l} className="pop-chiplabel">
-                        <FigureText text={l} />
-                      </span>
-                    ))
+                    // One line; a row that does not fit ends in an ellipsis instead of losing labels.
+                    <FigureText text={c.chipLabels.join(' · ')} />
                   )}
                 </span>
               </span>

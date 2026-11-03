@@ -469,7 +469,8 @@
   color: var(--cl-on-prussian);
 }
 
-/* Keep a phrase on one line (the hero breaks between phrases, never inside one). */
+/* Keep a phrase on one line: the hero breaks between "The catch," "next to" and "the claim.",
+   never inside one. Each phrase is short enough to fit the hero column from 320 px up. */
 .nowrap {
   white-space: nowrap;
 }

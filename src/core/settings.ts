@@ -17,8 +17,6 @@ export interface Settings {
   motion: 'system' | 'reduce';
   theme: 'system' | 'light' | 'dark';
   plainLine: { enabled: boolean; provider: 'on-device' | 'byo-key' };
-  /** F12 BYO key, only if the user adds one (post-MVP; not used by any code path yet). */
-  byoKey?: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -68,6 +66,7 @@ export function sanitizeSettings(raw: unknown): Settings {
       provider: pick(pl.provider, ['on-device', 'byo-key'] as const, 'on-device'),
     },
   };
-  if (typeof r.byoKey === 'string' && r.byoKey.trim()) out.byoKey = r.byoKey.trim();
+  // No API key is stored: the optional cloud line is not built, so a key would only sit in every
+  // page's content-script memory (code review r1, finding 14). Unknown fields, a key included, drop.
   return out;
 }

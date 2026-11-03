@@ -2,8 +2,6 @@
 
 import type { SymbolGlyph } from '../types';
 
-export const SYMBOL_CHARS = ['*', '†', '‡', '§', '¶'] as const;
-
 const SUPERSCRIPT_DIGITS: Record<string, string> = {
   '⁰': '0',
   '¹': '1',

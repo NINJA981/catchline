@@ -29,13 +29,17 @@ export const EXCLUDED_SUBTREE_SELECTOR = [
  */
 export const LEGAL_CONTAINER_SELECTOR = [
   'footer',
-  '[class*="legal" i]',
+  // Substrings are matched case-insensitively, so words that merely contain them are excluded:
+  // "paralegal" is not legal, "refined" or "define" is not fine print (code review r1, finding 9).
+  '[class*="legal" i]:not([class*="paralegal" i])',
   '[class*="disclaimer" i]',
   '[class*="terms" i]',
   '[id*="terms" i]',
   '[id*="legal" i]',
   '[id*="disclaimer" i]',
-  '[class*="fine" i]',
+  '[class*="fine-print" i]',
+  '[class*="fineprint" i]',
+  '[class*="fine_print" i]',
   '[class*="disclosure" i]',
   '[id*="disclosure" i]',
   '[class*="offer-details" i]',
@@ -50,11 +54,12 @@ export const LEGAL_CONTAINER_SELECTOR = [
 export const FINE_PRINT_SELECTOR = [
   'footer',
   '[role="contentinfo"]',
-  '[class*="legal" i]',
+  '[class*="legal" i]:not([class*="paralegal" i])',
   '[class*="disclaimer" i]',
   '[class*="disclosure" i]',
   '[class*="fine-print" i]',
   '[class*="fineprint" i]',
+  '[class*="fine_print" i]',
   '[class*="footnote" i]',
   '[id*="footnote" i]',
 ].join(',');
@@ -106,30 +111,4 @@ export const INLINE_TAGS = new Set([
   'TIME',
   'U',
   'BIG',
-]);
-
-/** Tags whose text can be a footnote block. */
-export const BLOCK_TAGS = new Set([
-  'P',
-  'LI',
-  'DIV',
-  'DD',
-  'DT',
-  'TD',
-  'SMALL',
-  'SPAN',
-  'SECTION',
-  'ARTICLE',
-  'ASIDE',
-  'BLOCKQUOTE',
-  'FIGCAPTION',
-  'H1',
-  'H2',
-  'H3',
-  'H4',
-  'H5',
-  'H6',
-  'SUMMARY',
-  'DETAILS',
-  'FOOTER',
 ]);

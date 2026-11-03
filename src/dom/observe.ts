@@ -52,7 +52,15 @@ export function createRescanObserver(
   };
 
   const observer = new MutationObserver((records) => {
-    if (!records.some((r) => !ignore(r.target))) return;
+    // A record is our own when it happens inside Catchline's UI, or only adds or removes Catchline's
+    // hosts (they are children of <html>, which is observed so a swapped <body> is still watched).
+    const own = (r: MutationRecord) => {
+      if (ignore(r.target)) return true;
+      if (r.type !== 'childList') return false;
+      const nodes = [...Array.from(r.addedNodes), ...Array.from(r.removedNodes)];
+      return nodes.length > 0 && nodes.every(ignore);
+    };
+    if (records.every(own)) return;
     const now = Date.now();
     if (timer !== null) clearTimeout(timer);
     else firstAt = now;

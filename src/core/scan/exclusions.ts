@@ -86,8 +86,13 @@ function isInlineish(el: Element): boolean {
   return INLINEISH.has(el.tagName);
 }
 
-const CURRENCY_AMOUNT_END = /[$€£¥]\s?\d[\d,]*\.?$/;
+// A price at the end of the text, with or without decimals: "$9", "$1,299", "$9.99".
+const CURRENCY_AMOUNT_END = /[$€£¥]\s?\d[\d,]*(?:\.\d+)?\.?$/;
 const DIGIT_END = /\d[.,]?$/;
+// A unit or variable that a superscript number raises to a power: "230 m²", "x²", "12 in²".
+// "in" counts only after a number ("Sign in¹" is a footnote), and x, y, n only when they stand
+// alone, not after a digit ("Earn 5x¹" is a footnote).
+const UNIT_END = /(?:^|[^\p{L}])(?:m|cm|mm|km|ft|mi|yd|sq|mc)$|\d\s?in$|(?:^|[^\p{L}\d])[xyn]$/iu;
 
 /**
  * A <sup> that prints cents or a fractional part of a price:
@@ -106,12 +111,11 @@ export function isCentsSuperscript(supText: string, before: string): boolean {
 export function isNonFootnoteSuperscript(supText: string, before: string): boolean {
   const t = supText.trim();
   if (!t) return true;
-  if (/^(st|nd|rd|th|e|er|re|ème|o|a)$/i.test(t) && /\d$/.test(before)) return true; // 1st, 2nd, 1er
+  // 1st, 2nd, 1er, 2e. A single "a" or "o" after a number is a lettered footnote ("$10<sup>a</sup>").
+  if (/^(st|nd|rd|th|e|er|re|ème)$/i.test(t) && /\d$/.test(before)) return true;
   if (/^(™|®|©|℠|tm|sm|\(r\)|\(c\))$/i.test(t)) return true;
   if (/^[-−+]\d/.test(t)) return true; // 10^-3
-  if (/^\d+$/.test(t) && /(?:^|[^\p{L}])(?:m|cm|mm|km|ft|in|mi|yd|sq|x|y|n)$/iu.test(before)) {
-    return true; // m², x²
-  }
+  if (/^\d+$/.test(t) && UNIT_END.test(before)) return true; // m², x²
   return false;
 }
 
@@ -129,7 +133,7 @@ export function footnoteKeyFromSup(supText: string): string | null {
 
 /** Unicode superscript digits used as units or exponents: "m²", "10³" (unless "$10¹"). */
 export function isUnitOrExponentSuperscript(before: string): boolean {
-  if (/(?:^|[^\p{L}])(?:m|cm|mm|km|ft|in|mi|yd|sq|mc|x|y|n)$/iu.test(before)) return true;
+  if (UNIT_END.test(before)) return true;
   if (/\d$/.test(before) && !CURRENCY_AMOUNT_END.test(before)) return true;
   return false;
 }

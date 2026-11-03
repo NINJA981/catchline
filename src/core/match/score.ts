@@ -18,7 +18,16 @@ export interface CandidateFeatures {
   candidates: number;
   /** Token overlap between claim and footnote, 0..1. */
   overlap: number;
+  /** Words in the candidate's footnote body (after the marker). Omitted: not checked. */
+  bodyWords?: number;
 }
+
+/**
+ * A candidate whose only evidence is the shared key (not in a legal section, not small, not hidden,
+ * no word in common with the claim) needs at least this many words to count. "* Required" next to
+ * a form is not the footnote for "$0/mo*" (code review r1, finding 6; SPEC AC-F2.4 never guess).
+ */
+export const UNCORROBORATED_MIN_WORDS = 4;
 
 export interface Scored {
   confidence: number;
@@ -77,6 +86,12 @@ export function scoreCandidate(f: CandidateFeatures): Scored {
   if (f.overlap > 0) {
     s += W.overlap * f.overlap;
     signals.push(`token-overlap:${f.overlap.toFixed(2)}`);
+  }
+  const uncorroborated =
+    f.sameKey && !f.phraseSection && !f.inLegal && !f.smallFont && !f.hidden && f.overlap === 0;
+  if (uncorroborated && f.bodyWords !== undefined && f.bodyWords < UNCORROBORATED_MIN_WORDS) {
+    s = Math.min(s, MATCH_THRESHOLD - 0.01);
+    signals.push('uncorroborated-short');
   }
   // 1.0 is reserved for explicit links (Stage A).
   const confidence = Math.round(Math.min(0.99, Math.max(0, s)) * 100) / 100;

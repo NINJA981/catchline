@@ -1,91 +1,140 @@
 # Catchline handoff
 
-Last updated: 2026-10-27, end of Stage 4 (test engineer). Stage 3a/3b notes below are still accurate; the Checks table and "Testing (Stage 4)" are the current numbers.
+Last updated: 2026-11-04, release preparation for v0.1.0 (branch `release/linkedin`).
 
 ## Status
 
 Every user-facing surface in SPEC section 5 is built on the DESIGN.md tokens, in light and dark:
 
-- **Overlay** (`src/overlay/*`, injected on demand by `src/entrypoints/overlay.content.ts` inside a
+- **Overlay** (`src/overlay/*`, injected on demand by `src/entrypoints/overlay.content.ts` into a
   Shadow DOM root): marker hit targets, the catch card (matched, likely, many-to-one expander, no
   footnote, terms on another page, loading, error), the tether, the ghost outline, the footnote
   flight (full, short and reduced-motion versions), Show all with the scrim, fanned tethers, rail
-  (bottom sheet under 900 px), J/K/Enter/Esc/? keys with pressable keycaps, and Share this catch
-  (1200 x 630 PNG painted locally, `src/overlay/share-render.ts`).
-- **Popup** (`src/entrypoints/popup`): rollup ledger, catch list, "Other footnotes", per-site toggle, and all
-  eight states (loading skeleton, empty, reference-only, success, disabled, restricted, permission
-  needed, error).
-- **Options** (`src/entrypoints/options`): every `Settings` field, sites turned off, accuracy ("Not yet
-  measured"), shortcut table, privacy, save-state text and a retry on a failed save.
-- **Welcome** (`src/entrypoints/welcome`): specimen page running the real overlay, labelled "Specimen
-  page. Not a real offer.", three steps, Firefox permission panel. Opened once on install.
-- Shared UI: `src/ui/components/*`, `src/ui/components.css`, `src/ui/pages.css`,
-  `src/ui/base.tokens.css` (tokens shared with the site), `src/overlay/overlay.css`.
+  (bottom sheet under 900 px), J/K/Enter/Esc/? keys, and Share this catch (1200 x 630 PNG painted
+  locally, `src/overlay/share-render.ts`).
+- **Popup** (`src/entrypoints/popup`): rollup ledger, catch list, "Other footnotes", per-site toggle,
+  and eight states (loading skeleton, empty, reference-only, success, disabled, restricted,
+  permission needed, error).
+- **Options** (`src/entrypoints/options`): every `Settings` field, sites turned off, accuracy ("Not
+  yet measured"), shortcut table, privacy, save state and a retry on a failed save.
+- **Welcome** (`src/entrypoints/welcome`): specimen page running the real overlay, labelled
+  "Specimen page. Not a real offer.", three steps, Firefox permission panel. Opened once on install.
+- **Site** (`site/`): landing page and the offline web app (`/app/`) on the same engine. Notes in
+  `site/README.md`.
 
-Not built (see "Known issues"): the optional plain-language line (F12) is only a saved setting that
-Options explains is not in this version; the real-page corpus and scorer; Firefox runtime testing.
+Not built: the optional plain-language line (F12) is a saved setting only; the public accuracy
+corpus and scorer; Firefox runtime testing.
 
-## Checks (last run, 2026-10-27, Stage 4)
+## What changed in the release round (2026-11-04)
 
-| Check | Result |
-|---|---|
-| `pnpm lint` (ESLint strict type-checked + Prettier, includes `site/`) | pass |
-| `pnpm typecheck` | pass (TypeScript 6.0.3) |
-| `pnpm test` (Vitest, happy-dom) | pass: 487 tests in 23 files |
-| `pnpm test:site` (site typecheck + Vitest) | pass: 42 tests in 4 files |
-| `pnpm build` / `pnpm build:firefox` / `pnpm check:network` | pass (Firefox `web-ext lint` was last run in Stage 3a: 0 errors, 4 React DOM `innerHTML` warnings) |
-| `pnpm build:site` + `site check:budget` + `site check:network` | pass (landing 24.4 kB gz, app 36.5 kB gz initial JS, limit 120 kB) |
-| `pnpm exec playwright test` (extension e2e + parity) | 68 tests pass (68 of 68 after the fixture fix; one earlier run had the AC-X.1 race, see "Testing (Stage 4)") |
-| `pnpm --dir site exec playwright test` (site e2e, desktop + phone) | 99 tests pass |
-| axe-core | zero violations on every surface, light and dark (list in `docs/TESTING.md`) |
+Commits on `release/linkedin`, oldest first:
 
-Bundle sizes (gzip -6): scanner content script 27.7 kB (ADR budget 22 kB, still over), overlay
-content script 136 kB (injected on demand only), no size-limit check yet.
+1. `fix round 1` (work left uncommitted by the previous session, committed unchanged): time-sliced
+   scan (`src/core/steps.ts`, `analyzeSliced`), large-page scan scopes, rescan observer max wait,
+   fonts through `FontFace` instead of a page `<style>`, background validation of overlay requests,
+   overlay preload on marker hover, ring and tether geometry fixes, popup/options a11y fixes, web app
+   status line, `scripts/check-size.mjs`.
+2. QA round 1 defects: landing hero overflow at 375 px and the clipped H1 at 1440 px (the hero now
+   breaks only between three short phrases), stale marker hit targets after host layout changes
+   (`ResizeObserver` + font `loadingdone` in `src/overlay/markers-layer.ts`), popup chip labels now
+   one line ending in an ellipsis instead of silently dropped, web app empty-submit error scrolled
+   into view.
+3. Docs made self-contained (no references to private planning files or machine paths);
+   `docs/screenshots/qa-r1/` (16 MB of regenerable captures) removed from the tree.
+4. `scripts/run-engine.mjs` (`pnpm engine <page.html>`): the engine on a saved page in Node, JSON
+   out. `scripts/launch-assets.mjs`: store screenshots, social preview and hero GIF from the built
+   extension.
+5. OSS packaging: README rewritten, CONTRIBUTING, CODE_OF_CONDUCT (Contributor Covenant 2.1),
+   SECURITY, CHANGELOG, issue and PR templates, `.github/workflows/ci.yml`. The site e2e overflow
+   test now covers 320, 375, 768, 1100 and 1440 px and checks the hero phrases stay in their column.
+6. Extension icons (`public/icon/*.png`, rendered by `scripts/make-icons.mjs` from the mark);
+   the manifest had none before. Launch kit in `docs/launch/`.
 
-## Visual QA (DESIGN_BIBLE section 9)
+## Checks
 
-`node scripts/screenshots.mjs [overlay|popup|states|pages|strip|all]` (build first) writes to
-`docs/screenshots/`: options and welcome at 375/768/1440 light and dark (plus the welcome card
-open), overlay card, Show all (and expanded) at 375/768/1440 light and dark, many-to-one and
-not-found card states, all eight popup states light and dark at real size, the interaction state
-sheet (`states-popup-*.png`: rest, hover, focus-visible, pressed), the signature flight frame strip
-(`strip-flight.png`, 13 frames, plus `strip-flight/`) and the reduced-motion strip
-(`strip-reduced-motion.png`, 10 frames). The strips seek paused Web Animations, so they are
-deterministic.
+VERIFY_TABLE
 
-Self-scored against section 9.2, on the screenshots above: identity 9, typography 9, color 9,
-layout 9, hierarchy and content 9, component craft 9, interaction states 9, motion 9, system states 9,
-responsive 9; average about 9.0, no hard fail found (axe clean, focus rings visible in the state
-sheet, no horizontal scroll at 375, reduced motion honoured). This is the builder's own
-judgment, not an independent critic review. Honest caveats that keep it from being higher:
-the host fixtures are unstyled browser-default pages, so the overlay screenshots sit on Times New
-Roman (the welcome specimen shows the overlay on a styled page); no Lighthouse run for the
-extension pages; the disabled and loading primary-button states are shown for the popup only.
+Bundle sizes (gzip -6, `pnpm check:size`): scanner 27.9 kB (target 22, ceiling 29), overlay
+134.3 kB (target 95, ceiling 140), popup entry 137.3 kB (target 90, ceiling 142), options entry
+132.1 kB (target 110, ceiling 141). All under their ceilings, all over their targets.
+
+## Code review r1 (2026-11-04): what was fixed and what remains
+
+The review read a snapshot from before the fix-round commit, so some findings were already handled
+at HEAD. Status per finding (numbers are the review's):
+
+| # | Finding | Status |
+|---|---|---|
+| 1 high | `$9.99¹` lost its marker (decimal prices not seen as prices) | Fixed, `exclusions.ts`; tests in `scan.test.ts` |
+| 2 high | `<a href="#pricing">Start free*</a>` took the whole section as the footnote | Fixed, `linked.ts`: only a link whose text is the marker counts, and a headed section is never a footnote; tests in `match.test.ts` |
+| 3 high | Size cap declared but not enforced; synchronous full scans | Mostly fixed by the fix round: `scanScopes` caps pages over 15,000 text nodes, scans run in 8 ms slices. **Open:** rescans are whole-page, not per mutated subtree |
+| 4 med | Observer bound to a replaced `<body>`; no body on XML | Fixed: observes `<html>`, ignores Catchline's own hosts; test in `adapters.test.ts` |
+| 5 med | Marker-id churn defeats the idle budget; no debounce max wait | Max wait (2 s) added in the fix round. **Open:** idle is still measured by marker ids |
+| 6 med | A shared key alone ("* Required") counted as a match | Fixed, `score.ts`: a key-only candidate with fewer than 4 words is below the threshold; tests |
+| 7 med | "Sign in¹", "Earn 5x¹", "$10ᵃ" dropped as units/ordinals | Fixed, `exclusions.ts`; tests |
+| 8 med | Shadow DOM not traversed; SPEC listed a missing fixture | Documented as a limitation in SPEC section 6 and README; not implemented |
+| 9 med | `[class*="fine"]` matched "refined", "legal" matched "paralegal"; `footnote-ref` links skipped | Fixed, `selectors.ts`, `markers.ts`; tests |
+| 10 med | Repeated per-marker work (chips, tokens, block text) | **Open** |
+| 11 med | `reportScan` sent on every rescan | Fixed: unchanged rollups are not resent; reset on navigation. **Open:** no scan epoch for report ordering |
+| 12 low | Two overlays possible between mount and first effect | **Open** (the background now serialises injections per tab, which narrows it) |
+| 13 low | "€1.299" parsed as 1.299 | **Open** |
+| 14 low | `byoKey` kept in settings; unvalidated messages | Fixed: no key field is stored; message validation was added in the fix round |
+| 15 low | Marker buttons not checked for occlusion; per-frame range reads | **Open** |
+| 16 low | Dead exports | `BLOCK_TAGS`, `SYMBOL_CHARS` removed. **Open:** three overlapping inline-tag sets |
+| 17 low | Missing tests | Added for 1, 2, 4, 6, 7, 9, 14 |
+
+## UI review (release round)
+
+- **Web Interface Guidelines** (Vercel, fetched 2026-11-04) checked by grep over `src/` and `site/`:
+  no `transition: all`, no zoom blocking, no `autofocus`; `color-scheme` and `theme-color` set; the
+  four `outline: none` rules in `src/overlay/overlay.css` are on programmatically focused
+  containers (card, claim, rail) whose controls keep `:focus-visible` rings; the site uses
+  `:focus:not(:focus-visible)`. No React `dangerouslySetInnerHTML` or `innerHTML` in `src/`.
+- **Impeccable detector** over `src/entrypoints`, `src/ui`, `src/overlay`, `site/index.html`,
+  `site/src/styles` (source scan, no rendered pass): one "nested cards" hit on the landing specimen,
+  which is intentional (a framed fictional page with Catchline's card on it); three advisory
+  1-2 px radii on 2 px underline bars, intentional. Audit scores (code level): accessibility 4
+  (axe clean on every surface in e2e), performance 3 (bundles over target), theming 4, responsive 3
+  (375 px overflow fixed, guarded by e2e from 320 to 1440 px), implementation integrity 4.
+- Fixed in this round from QA round 1: landing overflow and clipped H1, stale marker hit targets,
+  silently hidden popup chips, web app error below the fold, the expanded Show all entry drawn as
+  two boxes (now one box with a rule).
+
+## Accuracy: why no number is published
+
+A trial run outside this repository scored the engine on about 66 saved third-party promo pages
+(2026-10-28). It is **not** published, for four reasons: the pages are real companies' sites and
+cannot be committed or shown; the labels were made by an automated evaluator, not reviewed by a
+person; it ran on an uncommitted working tree, not a commit; and its last run ended in a test-worker
+crash. README and Options say "not yet measured". To publish a number: build a corpus that can be
+redistributed (self-authored pages that reproduce real patterns, or pages with a licence), label it
+by hand, add a scorer in `tests/` that runs in CI, and publish the CI number with its corpus
+description.
 
 ## How to run it
 
 ```
 pnpm install
-pnpm dev                 # Chrome with HMR (WXT opens a browser)
 pnpm build               # .output/chrome-mv3, load unpacked at chrome://extensions
 pnpm build:firefox       # .output/firefox-mv3
+pnpm zip && pnpm zip:firefox
 pnpm test                # unit tests
-pnpm test:e2e            # builds the extension and the site, then runs the extension Playwright suite
+pnpm test:e2e            # builds the extension and the site, then the extension Playwright suite
 pnpm test:site           # site typecheck + unit; pnpm --dir site exec playwright test for site e2e
-pnpm verify              # everything, in order (lint to both e2e suites)
-pnpm lint && pnpm typecheck
-pnpm check:network       # after a build
+pnpm verify              # everything, in order
+pnpm engine tests/fixtures/synthetic/carrier-specimen.html
+node scripts/launch-assets.mjs     # after pnpm build: docs/launch images
+node scripts/screenshots.mjs all   # after pnpm build: QA captures into docs/screenshots
 ```
 
-This machine keeps browsers in `X:\DevCache\ms-playwright` (`PLAYWRIGHT_BROWSERS_PATH`).
+Playwright uses its default browser cache; set `PLAYWRIGHT_BROWSERS_PATH` to use another folder.
 
 ## Layout
 
-See README.md. The rule that matters for the web app (`site/`): **everything in `src/core` is pure
-TypeScript with no browser or extension API**, and `src/core/index.ts` is the one entry module.
-`tests/unit/guards/core-boundary.test.ts` enforces it (no `chrome.*`, no globals, no network, no
-imports from outside `src/core`, and the text-only functions run in a Node environment with no DOM).
-`eslint.config.js` adds import and global restrictions for `src/core/**`.
+See README.md. The rule that matters for the web app: **everything in `src/core` is pure TypeScript
+with no browser or extension API**, and `src/core/index.ts` is the one entry module.
+`tests/unit/guards/core-boundary.test.ts` enforces it and `eslint.config.js` adds import and global
+restrictions for `src/core/**`.
 
 | Area | Where | Notes |
 |---|---|---|
@@ -96,178 +145,61 @@ imports from outside `src/core`, and the text-only functions run in a Node envir
 | UI state | `src/core/state/*` | card, popup and Show all as pure reducers/derivations |
 | Settings schema | `src/core/settings.ts` | `sanitizeSettings` repairs anything read from storage |
 | Browser adapters | `src/adapters`, `src/storage`, `src/messaging`, `src/dom` | thin; extension-only |
-| Entrypoints | `src/entrypoints/*` | `background`, `scanner.content`, `popup` |
-| Tokens | `src/ui/tokens.css` | DESIGN.md colors verbatim, Tailwind v4 `@theme inline`, light + dark |
+| Entrypoints | `src/entrypoints/*` | background, scanner and overlay content scripts, popup, options, welcome |
+| Tokens | `src/ui/tokens.css`, `src/ui/base.tokens.css` | DESIGN.md colors, light + dark, shared with the site |
 
-Fonts are Schibsted Grotesk (variable) and Commit Mono through Fontsource, bundled for extension
-pages and copied to `fonts/` for the content script's document-level `@font-face` (ADR section 5.3;
-`src/dom/fonts.ts` is written and tested but nothing calls it until the overlay exists).
+## Decisions worth knowing
 
-## Fixtures
-
-All fixtures are hand-written and synthetic; provenance is in `tests/fixtures/README.md`. The 30
-real-page corpus (SPEC section 11) does **not** exist. Extractor table cases (about 15 per family,
-SPEC AC-F4.1) are inline in `tests/unit/extract/*.test.ts`.
-
-## Decisions made in Stage 2
-
-- **TypeScript is pinned to 6.0.3, not 7.0.2.** `typescript-eslint` 8.72.x declares
-  `typescript <6.1.0`. Recorded in ADR 0001 (stack table and action item 1).
-- **The hidden-money total counts one-time amounts only.** Chip units carry the recurrence:
-  `USD` is one-time; `USD/mo`, `USD/yr` and `USD/unit` (overage rates) are listed but not summed. A
-  bank page therefore reads `5 catches: 15 months hidden` rather than adding a $12/month fee and a
-  $95 annual fee into one "hidden" number.
-- **Phrase markers ("Terms apply") match the legal section as a whole** and are narrowed to one
-  sentence only when that sentence shares at least two words with the claim and clears the overlap
-  threshold (otherwise the whole section is shown). The phrase words themselves are ignored.
-- **Firefox:** `strict_min_version` is 140 (desktop) and 142 (Android) because
-  `data_collection_permissions` needs them.
-- **Two markers in one short block share the same claim text** (the whole block). Matching still
-  works by key; the overlay will need the marker position, which `Marker.anchor` carries.
+- **TypeScript is pinned to 6.0.3**: `typescript-eslint` 8.72.x declares `typescript <6.1.0`.
+- **The hidden-money total counts one-time amounts only.** `USD/mo`, `USD/yr` and per-unit rates are
+  listed but not summed.
+- **Phrase markers ("Terms apply")** match the legal section as a whole and narrow to one sentence
+  only when it shares at least two words with the claim.
+- **Firefox:** `strict_min_version` 140 (desktop) and 142 (Android), required by
+  `data_collection_permissions`.
+- **`activeTab` stays** although `<all_urls>` makes it redundant on Chrome: on Firefox host access is
+  optional and `activeTab` still grants the tab after a click.
+- **CSS anchor positioning is not used**; the card and tether use measured geometry (one rAF loop
+  while a card is open).
 
 ## Known issues and gaps
 
-- **Scanner bundle is over the ADR budget:** 84 kB raw, 27.7 kB gzip (`gzip -6`), against a 22 kB
-  gzip target (ADR section 6). `@webext-core/messaging` is already gone; the overlay bridge and
-  settings code grew it. No `size-limit` check exists yet. Likely savings: split rarely used family
-  rules and lazy-load the marker layer.
-- **Accuracy is unmeasured on real pages.** The synthetic fixtures prove code paths. The extractor
-  has known gaps (for example `$10 SIM kit fee`, `Penalty APR up to 29.99%`, `Late payment fee up
-  to $41`, `Cash advance fee is 5%`, some "$X per extra N units" overage phrasings, and
-  "Port charges and taxes of $212"). Fix them against the real corpus, not by guessing.
-- **`Marker.claimText` for pages with several markers in one block** is the whole block (see above).
-- **No `size-limit`, no `check-tokens` with culori, no `oxlint`.** ESLint (strict type-checked) is
-  the linter; `tests/unit/guards/tokens.test.ts` covers token drift without culori. The ADR's
-  accent distance (delta E) check is not implemented.
-- **Popup state depends on a tab URL it reads itself**, so the popup cannot yet be exercised against
-  a specific page in e2e (it sees its own tab). The view logic is covered by unit tests
-  (`state.test.ts`, `popup.test.tsx`).
-- **Firefox is build + lint only.** Playwright cannot load Firefox extensions; the manual smoke
-  checklist below has not been run.
-- **CSS anchor positioning is not used.** The card and tether use the measured-geometry path only
-  (one rAF loop while a card is open, read all rects then write all transforms). The injection hop
-  (executeScript from the background) is implemented and covered by e2e.
-- **AC-F8.1 is not golden-compared:** the e2e test checks the PNG is 1200 x 630 and made without a
-  network request, with a loose time gate; there is no pixel golden yet.
-- **AC-F10.1 (first paint 100 ms) is not asserted strictly:** measured 108 to 140 ms from navigation
-  start when run alone, once 552 ms on a loaded runner; the test gate is 1000 ms.
-- **E2E flakes:** the badge tests can miss their wait on a cold first browser launch (wait is now
-  15 s); re-run once before suspecting a regression.
-- **F12 plain-language line is a saved setting only.** Options says so; AC-F12.1 holds because no
-  built-in AI API is called anywhere.
-- **No Lighthouse run for the extension pages;** axe is the accessibility evidence.
-- **`web-ext lint` warnings:** two `UNSAFE_VAR_ASSIGNMENT` from React DOM internals in the popup
-  chunk.
-- **TypeScript 7.0.2 with WXT is untried.** The blocker found is `typescript-eslint`, not WXT.
-- Patch releases newer than the pins exist (`wxt` 0.21.5, `vite` 8.3.5, `happy-dom` 21.0.4 on
-  2026-10-27). They were not taken to keep the lockfile stable.
-- `PRODUCT.md` and `.impeccable/` are leftovers from Stage 1 (`.impeccable/questions/` is untracked).
+- **Accuracy is unmeasured** on a public corpus (see above). Known extractor gaps from hand testing:
+  `$10 SIM kit fee`, `Penalty APR up to 29.99%`, `Late payment fee up to $41`, `Cash advance fee is
+  5%`, some "$X per extra N units" overage phrasings, "Port charges and taxes of $212".
+- **Bundle sizes are over target** (see Checks). Moving `motion` and `lucide-react` out of the shared
+  popup/options chunk is the way down; the scanner also carries `@wxt-dev/storage` code nothing in
+  `src/` imports directly.
+- **Firefox is build + `web-ext lint` only** (lint: 0 errors, warnings from React DOM's `innerHTML`
+  internals). The manual checklist below has not been run.
+- **AC-F10.1 (popup first paint 100 ms) and AC-F8.1 (share PNG 300 ms)** are gated loosely in e2e
+  because headless Chromium on a loaded machine misses them intermittently.
+- **QA round 1 item still open:** the open ring or rest underline can sit off the glyph on very
+  large or superscript markers. Re-run `node scripts/screenshots.mjs all` and review.
+- **The plain-language line (F12)** is a saved setting only; Options says so.
+- **No store listing yet.** Copy for both stores is in `docs/launch/LAUNCH.md`.
+- **Git history**: commits before `release/linkedin` carry a different author identity and AI
+  co-author trailers. Rewriting history is the maintainer's decision; nothing here changed it.
 
 ### Firefox manual smoke checklist (not yet run)
 
-1. `pnpm build:firefox`, then `about:debugging` -> Load Temporary Add-on -> `.output/firefox-mv3/manifest.json`.
-2. Grant the host permission when prompted (Firefox MV3 treats it as optional).
+1. `pnpm build:firefox`, then `about:debugging` -> Load Temporary Add-on ->
+   `.output/firefox-mv3/manifest.json`.
+2. Grant the host permission on the welcome page (Firefox MV3 treats it as optional).
 3. Open a page with `*` footnotes: the toolbar badge shows a count; hover shows the rollup text.
-4. Open the popup: shows the same rollup; on `about:` pages it shows the restricted message.
-5. No network requests in the Network panel from the extension's origin.
+4. Click a marker: the card flies up and docks; Esc closes it. Alt+Shift+C opens Show all.
+5. Open the popup: shows the same rollup; on `about:` pages it shows the restricted message.
+6. No network requests in the Network panel from the extension's origin.
 
-## Site: landing page and web app (Stage 3b, `site/`)
+## Testing
 
-A separate package (`site/package.json`, its own `pnpm install`). Full notes, decisions, measured
-numbers and known issues are in **`site/README.md`**; the testable criteria are SPEC section 13.
+`docs/TESTING.md` maps every SPEC acceptance criterion to its tests, the layers, and what is not
+covered. `tests/unit/guards/ac-coverage.test.ts` fails when a criterion is named by no test and is
+not a listed gap. Fixtures are hand-written and synthetic; provenance in `tests/fixtures/README.md`.
 
-- `/` landing page, `/app/` installable offline web app (paste text or HTML, or open a sample; the
-  engine, tether, flight, cost chips and share PNG). Run: `cd site && pnpm install && pnpm dev`.
-  Checks: `pnpm test`, `pnpm test:e2e`, `pnpm check:budget`, `pnpm check:network` (all pass).
-- **Engine reuse:** the site imports `src/core/index.ts` through the `@catchline/core` alias. No
-  extension API is reachable from the core, so no shim was needed; the only adapter is
-  `site/src/engine/oracle.ts` (a `StyleOracle` for pasted pages, which have no layout). The site also
-  imports `src/overlay/model.ts` and `src/overlay/share-render.ts` (aliases `@catchline/overlay-model`,
-  `@catchline/share-render`) so the web app produces the extension's share PNG. If the overlay owner
-  moves or changes them, update `site/src/app/share.ts` only.
-- **Build output** goes to `.output/site/` (not `site/dist`) so the root ESLint and Prettier, which
-  ignore `.output/`, never see generated files. The root `pnpm lint` does lint `site/` sources.
-- **No WebGL** on the landing page (DESIGN.md decision); the budget script fails the build if it
-  appears. Measured on a throttled mobile profile: landing LCP 690 ms, app LCP 867 ms, CLS 0.
-- Open: accuracy panel says "not yet measured" (no `corpus/report.json`), no store or repository
-  links exist yet, landing copy describes the full extension and should be re-checked once the
-  overlay is built.
+## Next steps
 
-## Testing (Stage 4)
-
-Full matrix of every SPEC acceptance criterion to its tests, the layers, and what is not covered:
-**`docs/TESTING.md`**. `tests/unit/guards/ac-coverage.test.ts` fails when a criterion is named by
-no test and is not a listed gap.
-
-Added in this stage: site e2e split into app flows (sample, paste, upload), offline/PWA/CSP/request
-log, axe sweep and a landing smoke test, each run on a desktop project and a phone project (375 x 812,
-touch); an extension axe sweep over the remaining surfaces (popup states, options, Show all rail,
-no-footnote and many-to-one cards); the extension-vs-web-app parity test over all 15 synthetic
-fixtures (`tests/e2e/parity.spec.ts`); the SPEC coverage guard.
-
-Real bugs found and fixed (each with the smallest change):
-
-1. Web app marker buttons: the accessible name did not contain the visible mark (WCAG 2.5.3 label in
-   name). `aria-label` now ends with `marker <mark>` (`site/src/app/workspace.ts`).
-2. Web app reader: pasted-page headings could skip levels and break the app's outline; levels are now
-   nested under the result heading and never skip (`workspace.ts`).
-3. Overlay card: the claim was an `h3` injected into someone else's page, which can break the host's
-   heading outline; it is now a `p` that still names the dialog (`src/overlay/CardContent.tsx`).
-4. Fine-print scroll region was not keyboard reachable (axe scrollable-region-focusable); it is now
-   focusable with a name (`src/ui/components/catch-parts.tsx`).
-5. Popup states without a count had no h1 (axe page-has-heading-one); the brand word carries it
-   there (`src/entrypoints/popup/App.tsx`).
-6. Landing page: the commands `pre` block scrolls, so it is now focusable and named (`site/index.html`).
-7. Test infrastructure race: the e2e `requests` fixture counted the welcome tab's own chunk loads
-   (the tab opens on install) as extension-origin requests when its frame URL was still blank, which
-   failed AC-X.1 once in two full runs. An extension-origin load now counts only when a web page
-   issued it (`tests/e2e/extension.ts`). The check still fails if a page reaches into the extension.
-8. Site e2e port: the site preview ran on 4173 with `reuseExistingServer: true`; other projects on
-   this machine use that port, so a run could test the wrong site. Now 4619, never reused.
-
-Flake history, honestly: this machine is shared with other projects' browsers and servers, which is
-the likely cause of the timing flakes seen in Stage 3a. Stage 4 full-suite runs: extension e2e run 1
-68 of 68, run 2 67 of 68 (the AC-X.1 race above), run 3 after the fix 68 of 68. Site e2e: 99 of 99 in
-both runs. Lint, typecheck and unit were run once, before the last test-fixture edit; lint and
-typecheck were re-run after it (see commit).
-
-## Next stage: start here
-
-1. Capture the real-page corpus and write the scorer (SPEC section 11, ADR section 8); then tune
-   rules and thresholds against it only.
-2. `size-limit` budgets, and cut the scanner bundle below 22 kB gzip.
-3. Pixel golden for the share PNG; Firefox manual smoke; F12 if wanted.
-4. DESIGN.md still matches the built UI where checked (tokens, states, flight timings); the Appendix B
-   unchecked boxes (poster, OG card, landing screenshots) belong to the site and capture work.
-
-## QA round 1: design critic (2026-10-27)
-
-Fresh captures of the extension (popup states, overlay card, Show all, options, welcome, flight and
-reduced-motion strips) and the site (landing, `/app/` empty, sample and open card) at 375, 768 and 1440
-px in light and dark are in `docs/screenshots/qa-r1/`. Verdict: REVISE, rubric average about 8.4
-(DESIGN_BIBLE section 9), no hard fails, criterion 6 (component craft) below 8. Open design defects, in
-order: the Show all expanded entry repeats its chips (`src/overlay/ShowAll.tsx`); the tether loops when
-the card is placed below the marker (`tetherCurve` in `src/core/geometry.ts`, seen at 375 and 768 in the
-web app); the open-marker ring becomes a tall pill on large claims (`.cl-ring` in
-`src/overlay/overlay.css`); the popup skeleton does not match the loaded layout; the landing popup mock
-omits the rollup line. No code was changed in this round.
-
-### QA round 1, re-run (2026-10-28)
-
-Re-run on a fresh build of the **current working tree**. That tree includes uncommitted fix work from
-after the first run (41 modified files, plus the untracked `scripts/check-size.mjs`, `src/core/steps.ts`
-and `tests/unit/steps.test.ts`). This re-run did not commit or change those files. The captures in
-`docs/screenshots/qa-r1/` were overwritten. They now include `host-dark-*`, `site-app-error-*`,
-`site-app-many-375-*`, `site-app-notfound-768-*` and `site-landing-reduced-1440-*`.
-
-Verdict: **FAIL**. The rubric average is 7.2 and there is one hard fail.
-- **Hard fail:** the landing page scrolls sideways at 375 px (`scrollWidth` 456, `scrollX` reaches 81).
-  The uncommitted change to `site/index.html:73` wraps "next to the claim." in `.nowrap`. The same
-  change also cuts off the hero H1 at 1440 px, where the specimen frame covers it ("next to the c").
-- **Fixed since the first run:** the Show all chips no longer repeat, the popup skeleton now matches the
-  loaded layout, and the landing popup mock now shows the rollup line.
-- **Still open:** the marker hit targets go stale after the host page's layout changes, and only
-  scroll and resize move them (`src/overlay/markers-layer.ts:82-83`). The popup's catch rows hide chips
-  that don't fit without saying so (`.pop-row__chips` in `src/ui/pages.css:201`). The expanded Show all
-  entry is drawn as two separate boxes. An empty submit in the web app shows its error below the fold.
-  The open ring and the rest underline sit off the glyph on large or superscript markers.
+1. A redistributable, hand-labelled accuracy corpus with a CI scorer; then tune rules against it.
+2. Firefox manual smoke test; then store submissions (Chrome Web Store, AMO) with the launch kit.
+3. Cut bundles toward their targets and lower the ceilings in `scripts/check-size.mjs`.
+4. Re-run the visual QA captures and close the two remaining QA round 1 items.

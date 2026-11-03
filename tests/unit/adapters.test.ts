@@ -293,6 +293,30 @@ describe('rescan observer (ADR §3)', () => {
     expect(calls.n).toBe(0);
   });
 
+  // Code review r1, finding 4: the scanner observes <html>, so a replaced <body> is still watched,
+  // and adding Catchline's own hosts under <html> must not trigger a rescan.
+  it('ignores Catchline hosts added to <html> and still sees a replaced <body>', async () => {
+    const doc = parse('<html><body><p>x</p></body></html>');
+    const calls = { n: 0 };
+    createRescanObserver(doc.documentElement, () => {
+      calls.n++;
+      return 0;
+    });
+    const host = doc.createElement('catchline-markers');
+    host.setAttribute('data-catchline', '');
+    doc.documentElement.appendChild(host);
+    await vi.advanceTimersByTimeAsync(400);
+    expect(calls.n).toBe(0);
+    const fresh = doc.createElement('body');
+    fresh.innerHTML = '<p>$0/mo*</p>';
+    doc.documentElement.replaceChild(fresh, doc.body);
+    await vi.advanceTimersByTimeAsync(400);
+    expect(calls.n).toBe(1);
+    fresh.appendChild(doc.createElement('p'));
+    await vi.advanceTimersByTimeAsync(400);
+    expect(calls.n).toBe(2);
+  });
+
   it('stops observing after the idle budget and re-arms on demand', async () => {
     const { calls, obs, mutate } = setup(() => 0, { maxIdleBatches: 3, debounceMs: 10 });
     for (let i = 0; i < 5; i++) {

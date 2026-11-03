@@ -8,6 +8,9 @@ export interface LinkedTarget {
   signal: 'href' | 'aria-describedby' | 'aria-details';
 }
 
+/** Longest link text that is still just a marker: "*", "12", "[12]", "†‡". */
+const MARKER_LINK_MAX_CHARS = 5;
+
 const EXTERNAL_TERMS_PATH =
   /(terms|legal|disclosure|disclaimer|offer-details|offer_details|conditions|fine-print|restrictions|rates-and-fees|pricing-terms)/i;
 
@@ -18,8 +21,15 @@ export function resolveLinked(markerEl: Element, claimEl: Element): LinkedTarget
   // element when it is the superscript (or link) itself; otherwise a sibling "Details" link in the
   // same block would be mistaken for the marker's own link.
   const ownsLink = markerEl.tagName === 'SUP' || markerEl.tagName === 'A';
-  const anchor =
+  const candidate =
     markerEl.closest('a[href]') ?? (ownsLink ? markerEl.querySelector('a[href]') : null);
+  // Only a link that IS the marker ("<a href="#fn1">1</a>", "<sup><a>*</a></sup>") points at the
+  // footnote. A call-to-action that merely ends in a marker ("<a href="#pricing">Start free*</a>")
+  // points at a section of the page (code review r1, finding 2).
+  const anchor =
+    candidate && collapseWhitespace(candidate.textContent).length <= MARKER_LINK_MAX_CHARS
+      ? candidate
+      : null;
   const href = anchor?.getAttribute('href') ?? '';
   if (href.startsWith('#') && href.length > 1) {
     const target = byId(doc, href.slice(1));
@@ -64,6 +74,9 @@ function footnoteElementFor(target: Element, markerEl: Element): Element | null 
   const el = text.length < 4 ? claimBlockFor(target.parentElement ?? target) : target;
   if (!el || el.contains(markerEl)) return null;
   if (collapseWhitespace(el.textContent).length < 2) return null;
+  // A target with its own heading is a page section ("#disclosures"), not one footnote. Stage B then
+  // finds the line in it that starts with the marker, instead of taking the whole section.
+  if (el.querySelector('h1,h2,h3,h4,h5,h6')) return null;
   return el;
 }
 

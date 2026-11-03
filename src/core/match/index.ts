@@ -160,6 +160,7 @@ function bestCandidate(marker: Marker, claimEl: Element, pool: readonly Candidat
       nearestFollowing: c === nearestFollowing,
       candidates: usable.length,
       overlap,
+      bodyWords: wordCount(c.body),
     });
     if (!best || confidence > best.confidence) best = { candidate: c, confidence, signals };
   }

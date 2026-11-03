@@ -87,8 +87,15 @@ export default defineContentScript({
       void sendMessage('openOverlay', { req }).catch(() => undefined);
     }
 
+    // The last rollup sent, without its timestamp. A rescan that changes nothing sends nothing, so a
+    // busy page does not wake the background worker on every mutation (code review r1, finding 11).
+    let lastReport = '';
     function report(catches: Analysis['catches']): void {
       const { tabId: _unused, ...rollup } = buildRollup(-1, catches, Date.now());
+      const { scannedAt: _at, ...content } = rollup;
+      const key = JSON.stringify(content);
+      if (key === lastReport) return;
+      lastReport = key;
       void sendMessage('reportScan', rollup).catch(() => undefined);
     }
 
@@ -150,7 +157,9 @@ export default defineContentScript({
       if (observer) {
         observer.rearm();
       } else {
-        observer = createRescanObserver(document.body, scan);
+        // The root element, not <body>: Turbo/htmx-style navigations replace <body>, and XML or SVG
+        // documents have none (code review r1, finding 4).
+        observer = createRescanObserver(document.documentElement, scan);
       }
       if (immediate) void scan();
       else
@@ -221,6 +230,8 @@ export default defineContentScript({
     });
     ctx.addEventListener(window, 'wxt:locationchange', () => {
       known = new Set();
+      // The background clears the badge on navigation, so the next scan must report even if unchanged.
+      lastReport = '';
       bridge.overlay?.dispatch({ kind: 'close' });
       if (enabled()) {
         if (observer) observer.rearm();

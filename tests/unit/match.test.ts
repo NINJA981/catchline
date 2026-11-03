@@ -33,6 +33,72 @@ describe('F2 stage A: linked footnotes (AC-F2.1)', () => {
     const [c] = analyze(doc, createInlineStyleOracle()).catches;
     expect(c?.match.signals).not.toContain('href');
   });
+
+  // Code review r1, finding 2: a call-to-action link that ends in a marker is not a footnote link.
+  it('does not take an in-page call-to-action target as the footnote', () => {
+    const doc = parse(
+      `<body><p><a href="#pricing">Start free*</a></p>
+       <section id="pricing"><h2>Pricing</h2><p>Pro plan $20 a month, Team plan $40 a month.</p></section>
+       <footer style="font-size: 11px"><p>*Free for 14 days, then $20/mo. Cancel anytime.</p></footer></body>`,
+    );
+    const a = analyze(doc, createInlineStyleOracle());
+    const [c] = a.catches;
+    expect(c?.match.signals).not.toContain('href');
+    expect(c && shownText(a, c)).toContain('14 days');
+  });
+
+  it('skips a linked target that is a whole headed section and finds the marker line in it', () => {
+    const doc = parse(
+      `<body><p>$0 down<sup><a href="#legal">*</a></sup></p>
+       <section id="legal" style="font-size: 11px"><h2>Disclosures</h2>
+       <p>Prices exclude tax.</p><p>*$35 activation fee. Autopay required.</p></section></body>`,
+    );
+    const a = analyze(doc, createInlineStyleOracle());
+    const [c] = a.catches;
+    expect(c?.match.signals).not.toContain('href');
+    expect(c && shownText(a, c)).toContain('$35 activation');
+    expect(c && shownText(a, c)).not.toContain('Prices exclude tax');
+  });
+});
+
+describe('F2 stage B: a shared key alone is not enough (code review r1, finding 6)', () => {
+  it('does not match "$0/mo*" to a form\'s "* Required" hint', () => {
+    const doc = parse(
+      `<body><p>Get the phone for $0/mo*</p>
+       <form><label>Email <input></label><p>* Required</p></form></body>`,
+    );
+    const [c] = analyze(doc, createInlineStyleOracle()).catches;
+    expect(c?.match.footnoteId).toBeNull();
+  });
+
+  it('still matches an uncorroborated footnote with a real sentence', () => {
+    const doc = parse(
+      `<body><p>Get the phone for $0/mo*</p><p>* Offer valid on new lines through May 31.</p></body>`,
+    );
+    const [c] = analyze(doc, createInlineStyleOracle()).catches;
+    expect(c?.match.footnoteId).not.toBeNull();
+  });
+
+  it('caps a short, key-only candidate below the match threshold', () => {
+    const base = {
+      sameKey: true,
+      phraseSection: false,
+      inLegal: false,
+      smallFont: false,
+      hidden: false,
+      belowClaim: true,
+      nearestFollowing: true,
+      candidates: 1,
+      overlap: 0,
+    };
+    expect(scoreCandidate({ ...base, bodyWords: 1 }).confidence).toBeLessThan(MATCH_THRESHOLD);
+    expect(scoreCandidate({ ...base, bodyWords: 6 }).confidence).toBeGreaterThanOrEqual(
+      MATCH_THRESHOLD,
+    );
+    expect(
+      scoreCandidate({ ...base, smallFont: true, bodyWords: 1 }).confidence,
+    ).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
+  });
 });
 
 describe('F2 stage B: unlinked footnotes (AC-F2.2)', () => {

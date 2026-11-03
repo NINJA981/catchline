@@ -143,7 +143,10 @@ function* walk(roots: readonly Element[], out: RawMarker[]): Generator<void> {
     if (node.nodeType !== 1) continue;
     const el = node as Element;
     if (!rootSet.has(el) && (isExcludedElement(el) || isHiddenByAttribute(el))) continue;
-    if (!rootSet.has(el) && el.matches(FINE_PRINT_SELECTOR)) continue;
+    // A <sup> or <a> is the marker itself even when its class says "footnote" ("footnote-ref" in
+    // Pandoc and markdown-it output), so it is not skipped as fine print (code review r1, finding 9).
+    const isRef = el.tagName === 'SUP' || el.tagName === 'A';
+    if (!rootSet.has(el) && !isRef && el.matches(FINE_PRINT_SELECTOR)) continue;
     if (el.tagName === 'SUP') {
       scanSup(el, out);
       continue;

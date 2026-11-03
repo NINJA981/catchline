@@ -91,6 +91,15 @@ describe('F1 exclusions: cents (AC-F1.2)', () => {
   });
 
   it.each([
+    ['Sign in<sup>1</sup> to see your price', 'sup:1'],
+    ['Earn 5x<sup>1</sup> points on dining', 'sup:1'],
+    ['Only $10<sup>a</sup> a month', 'sup:a'],
+    ['Starting at $9.99<sup>1</sup> a month', 'sup:1'],
+  ])('reads the superscript in "%s" as a footnote (code review r1)', (html, glyph) => {
+    expect(scan(`<p>${html}</p>`).map((m) => m.glyph)).toEqual([glyph]);
+  });
+
+  it.each([
     '1<sup>st</sup> place',
     'Lumen<sup>®</sup>',
     'Lumen<sup>TM</sup> mesh',
@@ -122,6 +131,19 @@ describe('F1 exclusions: code, math, bullets, ratings (AC-F1.3)', () => {
     expect(scan('<footer><p>Price$* applies</p><p>$0/mo*</p></footer>')).toEqual([]);
   });
 
+  // Code review r1, finding 9.
+  it('scans claims inside a class that merely contains "fine" or "legal"', () => {
+    expect(scan('<div class="refined-grid"><p>$0/mo*</p></div>')).toHaveLength(1);
+    expect(scan('<div class="paralegal-services"><p>From $99*</p></div>')).toHaveLength(1);
+  });
+
+  it('reads a Pandoc or markdown-it footnote reference as a marker', () => {
+    const markers = scan(
+      '<p>Plans start at $20<a href="#fn1" class="footnote-ref"><sup>1</sup></a> a month</p>',
+    );
+    expect(markers.map((m) => m.glyph)).toEqual(['sup:1']);
+  });
+
   it('skips hidden subtrees', () => {
     expect(scan('<p hidden>$0/mo*</p><div aria-hidden="true">$5*</div>')).toEqual([]);
     expect(scan('<details><p>$0/mo*</p></details>')).toEqual([]);
@@ -145,6 +167,21 @@ describe('classifyRun', () => {
   it('reads Unicode superscripts as numbered footnotes', () => {
     expect(classifyRun('³', 'bundle', ' ')).toEqual({ glyph: 'uni:3', key: '3' });
     expect(classifyRun('¹²', 'bundle', ' ')).toEqual({ glyph: 'uni:12', key: '12' });
+  });
+
+  // Code review r1, finding 1 and 7: a decimal price, an English word that is also a unit, and a
+  // multiplier are claims, not exponents.
+  it.each([
+    ['¹', 'Starting at $9.99'],
+    ['²', 'Only €4.50'],
+    ['¹', 'Sign in'],
+    ['¹', 'Earn 5x'],
+  ])('reads %s after "%s" as a footnote marker', (run, prev) => {
+    expect(classifyRun(run, prev, ' ')?.glyph).toBe(`uni:${run === '¹' ? '1' : '2'}`);
+  });
+
+  it('still rejects a superscript after inches written with a number', () => {
+    expect(classifyRun('²', '12 in', ' ')).toBeNull();
   });
 
   it.each([

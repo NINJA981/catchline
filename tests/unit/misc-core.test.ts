@@ -28,7 +28,7 @@ describe('settings schema', () => {
       badge: true,
       plainLine: { enabled: false, provider: 'on-device' },
     });
-    expect(DEFAULT_SETTINGS.byoKey).toBeUndefined();
+    expect(DEFAULT_SETTINGS).not.toHaveProperty('byoKey');
   });
 
   it('keeps valid values and repairs invalid ones field by field', () => {
@@ -68,10 +68,8 @@ describe('settings schema', () => {
     expect(s.disabledHosts).toEqual(['example.com', 'shop.example.org']);
   });
 
-  it('trims a BYO key and drops an empty one', () => {
-    expect(sanitizeSettings({ byoKey: '  sk-test  ' }).byoKey).toBe('sk-test');
-    expect(sanitizeSettings({ byoKey: '   ' }).byoKey).toBeUndefined();
-    expect(sanitizeSettings({ byoKey: 5 }).byoKey).toBeUndefined();
+  it('never keeps an API key (code review r1, finding 14)', () => {
+    expect(sanitizeSettings({ byoKey: 'sk-test' })).not.toHaveProperty('byoKey');
   });
 
   it('is idempotent', () => {

@@ -127,7 +127,7 @@ Single keys only work while a card or Show all is open, never while you type in 
   the manual smoke checklist in [HANDOFF.md](HANDOFF.md) has not been run.
 - Fine print inside images, canvas or video is out of reach (no OCR).
 - Terms on a separate `/legal` page are shown as a "Terms are on another page" link, not fetched.
-- Cross-origin iframes are not scanned.
+- Cross-origin iframes and text inside shadow roots (web components) are not scanned.
 - Mobile Chrome has no extensions. The [web app](site/README.md) runs on phones: paste a page's
   text or HTML and it shows the same cards.
 - The optional on-device "plain-language line" in Options is a saved setting only; no model is

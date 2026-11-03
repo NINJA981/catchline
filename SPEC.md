@@ -109,6 +109,7 @@ Numbering follows the brief's scope items 1-9, plus the optional summary.
 - Fetching separate `/legal` or `/terms` pages. Shown as a "Terms are on another page" link chip; a
   same-origin fetch is v2.
 - Cross-origin iframes. Same-origin iframes are v1.1 if the corpus shows they matter.
+- Text inside shadow roots (web components). The scanner walks the light DOM only in v0.1.0.
 - Judging the merchant. Catchline shows the merchant's own words; it never labels an offer a scam,
   scores it, or colors it red.
 - Price history, deal comparison, coupons, affiliate links, accounts, sync, cloud anything.
@@ -172,7 +173,7 @@ interface Settings {         // chrome.storage.local, versioned (WXT storage.def
   motion: 'system' | 'reduce';
   theme: 'system' | 'light' | 'dark';
   plainLine: { enabled: boolean; provider: 'on-device' | 'byo-key' };
-  byoKey?: string;           // only if the user adds one; see section 9
+  // byoKey: not stored in v0.1.0. The cloud line is not built, so no API key field exists.
 }
 ```
 
@@ -283,7 +284,7 @@ gates; the published numbers are whatever CI measures.
 
 - 30 real pages: 6 carrier/broadband, 6 bank/credit, 6 retail, 4 streaming, 4 SaaS pricing, 4 airline/travel.
 - Captured with `pnpm corpus:capture <url>` (Playwright): scripts, images, media, fonts and tracking stripped; DOM serialized after load and after expanding every `<details>`; stored as a **reduced snapshot** that keeps structure, classes and text needed for matching. Each fixture folder holds `page.html`, `meta.json` (source URL, capture date, family, notes) and `expected.json` (hand-labeled marker-to-footnote pairs, sentence spans, chips).
-- About 12 synthetic edge fixtures, authored by hand and labeled synthetic: glyph forms, cents superscripts, math and code, reference footnotes, `<details>`, lazy legal drawer, sticky header, many-to-one, image-only fine print (expected "not found"), shadow-DOM host, hostile CSS.
+- About 12 synthetic edge fixtures, authored by hand and labeled synthetic: glyph forms, cents superscripts, math and code, reference footnotes, `<details>`, lazy legal drawer, sticky header, many-to-one, image-only fine print (expected "not found"), hostile CSS. (A shadow-DOM host fixture was planned; v0.1.0 does not enter shadow roots, see section 6.)
 - Real-page fixtures are kept to the minimum text needed for testing, credited to the source in `meta.json` and the README, and removed on request.
 
 ## 12. Demo script (10 seconds, muted, 1:1 and 16:9)

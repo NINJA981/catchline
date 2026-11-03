@@ -383,6 +383,34 @@
   background: var(--cl-sheet);
   box-shadow: var(--cl-shadow-e1);
 }
+/* Expanded: the entry and its details read as one box with a rule between them, not two cards. */
+.cl-entry:has(.cl-entry__open) {
+  border-radius: 8px;
+  background: var(--cl-sheet);
+  box-shadow: var(--cl-shadow-e1);
+}
+.cl-entry[data-selected='true']:has(.cl-entry__open) {
+  box-shadow:
+    0 0 0 1px var(--cl-rule),
+    inset 0 0 0 1px var(--cl-prussian);
+}
+.cl-entry:has(.cl-entry__open) .cl-entry__card {
+  width: calc(100% - 2px);
+  margin: 1px 1px 0;
+  border-radius: 7px 7px 0 0;
+  background: transparent;
+  box-shadow: none;
+}
+.cl-entry:has(.cl-entry__open) .cl-entry__card:hover {
+  background: var(--cl-sheet-2);
+}
+.cl-entry .cl-entry__open {
+  margin: 0 1px 1px;
+  border-top: 1px solid var(--cl-rule);
+  border-radius: 0 0 7px 7px;
+  background: transparent;
+  box-shadow: none;
+}
 .cl-offsetlabel {
   display: block;
   margin-bottom: 4px;

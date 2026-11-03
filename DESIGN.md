@@ -748,10 +748,11 @@ Spending 260KB on a 3D object would put a metaphor where the product can demonst
 - [x] Target platforms and their §8 constraints: Chrome MV3 + Firefox MV3 desktop; popup 380 wide
       ≤ 560 tall, first paint ≤ 100ms, Shadow DOM with z 2147483647, local fonts, badge ≤ 4 chars.
 
-§11.10 additions:
+Landing additions:
 - [x] The one sentence the 3D says: none; reasoned CSS/SVG-only choice (Landing Page 3D plan). T16
       static SVG and T18 pre-rendered loops only.
-- [ ] Poster, loop and OG card rendered via the capture approach: build stage (not yet produced).
+- [x] Poster, loop and OG card rendered via the capture approach: `site/public/og.png`,
+      `docs/launch/hero.gif` and `docs/launch/social-preview.png` (`scripts/launch-assets.mjs`).
 - [x] `size-limit` entries specified: ADR 0001 §6 (landing initial ≤ 120KB; no 3D chunk).
-- [ ] Tier 0 / reduced-motion / no-WebGL screenshots: build stage (reduced-motion and no-JS
-      screenshots of the landing hero; there is no WebGL tier).
+- [x] Tier 0 / reduced-motion / no-WebGL screenshots: `site/docs/screens/landing-1440-reduced.png`
+      and `landing-1440-nojs.png`; there is no WebGL tier.

@@ -45,14 +45,18 @@ const HOST_CSS = `
 `;
 
 const srv = await startServer();
-const h = await launch();
+// The specimen is served from 127.0.0.1, but the popup shows the host name, so the browser resolves
+// the fictional carrier's reserved .example domain to the local server.
+const HOST = 'ridgeline.example';
+const h = await launch([`--host-resolver-rules=MAP ${HOST} 127.0.0.1`]);
+const origin = srv.origin.replace('127.0.0.1', HOST);
 const { context, worker, extensionId } = h;
 
 async function openSpecimen(w, ht) {
   const page = await context.newPage();
   await page.setViewportSize({ width: w, height: ht });
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'no-preference' });
-  await page.goto(`${srv.origin}/carrier-specimen.html`);
+  await page.goto(`${origin}/carrier-specimen.html`);
   await page.addStyleTag({ content: HOST_CSS });
   await page.waitForFunction(
     () => document.querySelector('catchline-markers')?.shadowRoot?.querySelector('button'),
@@ -108,8 +112,7 @@ async function firstMarkerId(page) {
   return worker.evaluate(async (id) => {
     const [r] = await chrome.scripting.executeScript({
       target: { tabId: id, frameIds: [0] },
-      func: () =>
-        globalThis[Symbol.for('catchline.bridge')].getAnalysis().catches[0].marker.id,
+      func: () => globalThis[Symbol.for('catchline.bridge')].getAnalysis().catches[0].marker.id,
     });
     return r.result;
   }, tabId);
@@ -170,7 +173,7 @@ const frame = async (page) => {
 // 3. The popup ledger for the same page, shown over it where the toolbar popup opens.
 {
   const page = await openSpecimen(1280, 800);
-  const tabId = await tabIdOf(worker, srv.origin);
+  const tabId = await tabIdOf(worker, origin);
   const popup = await context.newPage();
   await popup.setViewportSize({ width: 380, height: 640 });
   await popup.emulateMedia({ colorScheme: 'light' });
@@ -214,7 +217,7 @@ const frame = async (page) => {
     .shot { position:absolute; left:600px; top:64px; width:820px; border-radius:12px; overflow:hidden; box-shadow:0 20px 60px rgba(18,32,47,.22), 0 0 0 1px rgba(18,32,47,.1); }
     .shot img { display:block; width:820px; }
   </style></head><body>
-    <div class="l"><div class="n">Catchline</div><h1>The catch, next to the claim.</h1>
+    <div class="l"><div class="n">Catchline</div><h1>The catch,<br>next to<br>the claim.</h1>
     <p>Matches every *, &dagger; and &sup1; to its footnote and lists the fees beside the promise. Runs in your browser. No network.</p></div>
     <div class="shot"><img src="data:image/png;base64,${card}" alt=""></div>
   </body></html>`);

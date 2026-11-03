@@ -1,5 +1,5 @@
 // Renders the extension's toolbar and store icons from the Catchline mark (the same drawing as
-// site/public/favicon.svg) into src/public/icon/{16,32,48,128}.png. Headless Chromium, one page,
+// site/public/favicon.svg) into public/icon/{16,32,48,128}.png. Headless Chromium, one page,
 // closed at the end. Run after changing the mark; the PNGs are committed.
 //
 //   node scripts/make-icons.mjs
@@ -11,10 +11,12 @@ import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { chromium } from '@playwright/test';
 
-const OUT = resolve(import.meta.dirname, '..', 'src', 'public', 'icon');
+const OUT = resolve(import.meta.dirname, '..', 'public', 'icon');
 mkdirSync(OUT, { recursive: true });
 
-const MARK = (px) => `<svg xmlns="http://www.w3.org/2000/svg" width="${String(px)}" height="${String(px)}" viewBox="0 0 32 32">
+const MARK = (
+  px,
+) => `<svg xmlns="http://www.w3.org/2000/svg" width="${String(px)}" height="${String(px)}" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="6" fill="#005c86"/>
   <g fill="none" stroke="#f9fcfe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M10 23C18 23 14 10 22 10"/><rect x="21.5" y="6.5" width="5" height="7" rx="1.2"/>

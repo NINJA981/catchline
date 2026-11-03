@@ -30,12 +30,14 @@ export async function startServer() {
   };
 }
 
-export async function launch() {
+/** `extraArgs` are added to Chromium's command line (launch-assets maps a fictional host). */
+export async function launch(extraArgs = []) {
   const dir = mkdtempSync(join(tmpdir(), 'catchline-shots-'));
   const context = await chromium.launchPersistentContext(dir, {
     channel: 'chromium',
     headless: process.env.HEADED ? false : true,
     args: [
+      ...extraArgs,
       `--disable-extensions-except=${EXT}`,
       `--load-extension=${EXT}`,
       '--disable-renderer-backgrounding',

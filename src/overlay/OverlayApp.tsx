@@ -65,6 +65,18 @@ class CardBoundary extends Component<
   }
 }
 
+/** True when Enter should act on the focused control instead of the rail. */
+function ownsKey(origin: EventTarget | undefined): boolean {
+  return (
+    origin instanceof Element &&
+    origin.closest('button, a[href], summary, input, select, textarea, [role="button"]') !== null
+  );
+}
+
+function inExpandedEntry(origin: EventTarget | undefined): boolean {
+  return origin instanceof Element && origin.closest('.cl-entry__open') !== null;
+}
+
 function prefersReduced(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -118,11 +130,19 @@ export function OverlayApp({ bridge, rootRef, onDestroy }: Props) {
     [bridge, cardRef],
   );
 
+  // The element that had focus when Show all opened, so leaving it puts focus back there.
+  const returnFocus = useRef<Element | null>(null);
+
   const exitShowAll = useCallback(() => {
     const y = showAllRef.current.restoreScrollY;
     dispatch({ type: 'exit' });
     setHelp(false);
     if (y !== null) window.scrollTo({ top: y, behavior: 'instant' });
+    const back = returnFocus.current;
+    returnFocus.current = null;
+    if (back instanceof HTMLElement && back.isConnected && back !== document.body) {
+      back.focus({ preventScroll: true });
+    }
   }, [showAllRef]);
 
   const handle = useCallback(
@@ -138,6 +158,7 @@ export function OverlayApp({ bridge, rootRef, onDestroy }: Props) {
           exitShowAll();
           return;
         }
+        returnFocus.current = document.activeElement;
         dispatch({
           type: 'enter',
           ids: railRef.current.map((m) => m.id),
@@ -200,6 +221,30 @@ export function OverlayApp({ bridge, rootRef, onDestroy }: Props) {
         setPressed(null);
       }, 120);
     };
+    const trapTab = (e: KeyboardEvent) => {
+      // Focus stays in the rail while Show all is open (Shift+Tab must not walk into the page).
+      const root = rootRef.current;
+      if (!root) return;
+      const items = Array.from(
+        root.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex="0"]'),
+      );
+      if (items.length === 0) return;
+      const rootNode = root.getRootNode();
+      const active = rootNode instanceof ShadowRoot ? rootNode.activeElement : null;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (!active || !root.contains(active) || active === root.querySelector('.cl-rail')) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (showAllRef.current.open) {
@@ -211,8 +256,17 @@ export function OverlayApp({ bridge, rootRef, onDestroy }: Props) {
           else exitShowAll();
           return;
         }
-        const action = keyToAction(e.key, e.target);
+        if (e.key === 'Tab') {
+          trapTab(e);
+          return;
+        }
+        const origin = e.composedPath()[0];
+        const action = keyToAction(e.key, origin ?? e.target);
         if (!action) return;
+        // Enter and the arrow keys belong to the control that has focus: a button activates, the
+        // fine print scrolls. The rail owns them only when focus is on the rail or the page body.
+        if (action === 'toggle-expand' && ownsKey(origin)) return;
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && inExpandedEntry(origin)) return;
         e.preventDefault();
         e.stopPropagation();
         if (action === 'next') {
@@ -242,7 +296,7 @@ export function OverlayApp({ bridge, rootRef, onDestroy }: Props) {
     return () => {
       window.removeEventListener('keydown', onKey, true);
     };
-  }, [closeCard, exitShowAll, help, cardRef, showAllRef]);
+  }, [closeCard, exitShowAll, help, cardRef, showAllRef, rootRef]);
 
   // A click outside the card closes it (clicks on the page itself pass through untouched).
   useEffect(() => {

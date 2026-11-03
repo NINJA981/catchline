@@ -146,6 +146,83 @@ for (const scheme of ['light', 'dark'] as const) {
       await scan(page, 'show all', 'catchline-overlay');
     });
 
+    test(`cards with more than six chips (travel, streaming) and the loading states`, async ({
+      context,
+      extensionId,
+      site,
+    }) => {
+      for (const name of ['travel-specimen.html', 'streaming-specimen.html']) {
+        const page = await openPage(context, site.url(name));
+        await page.emulateMedia({ colorScheme: scheme });
+        await openCard(page);
+        await finishOverlayMotion(page);
+        await scan(page, `card on ${name}`, 'catchline-overlay');
+        await page.close();
+      }
+
+      // The loading skeletons, held open by never answering the call each page waits for.
+      const popup = await context.newPage();
+      await popup.addInitScript(() => {
+        chrome.permissions.contains = () => new Promise(() => undefined);
+      });
+      await popup.emulateMedia({ colorScheme: scheme });
+      await popup.goto(`chrome-extension://${extensionId}/popup.html?tab=1`);
+      await expect(popup.getByRole('group', { name: 'Scanning this page' })).toBeVisible();
+      await scan(popup, 'popup loading');
+
+      const options = await context.newPage();
+      await options.addInitScript(() => {
+        chrome.storage.local.get = () => new Promise(() => undefined);
+      });
+      await options.emulateMedia({ colorScheme: scheme });
+      await options.goto(`chrome-extension://${extensionId}/options.html`);
+      await expect(options.getByRole('group', { name: 'Loading options' })).toBeVisible();
+      await scan(options, 'options loading');
+    });
+
+    test(`Show all: Enter activates the focused control, and the ? sheet is valid`, async ({
+      context,
+      extensionId,
+      worker,
+      site,
+    }) => {
+      const page = await openPage(context, site.url('carrier-specimen.html'));
+      await page.emulateMedia({ colorScheme: scheme });
+      await waitForMarkers(page);
+      const popup = await popupFor(context, extensionId, worker, site.origin);
+      await popup.getByRole('button', { name: /Show all on page/ }).click();
+      await page.bringToFront();
+      await page.waitForFunction(() =>
+        document.querySelector('catchline-overlay')?.shadowRoot?.querySelector('.cl-rail'),
+      );
+      await finishOverlayMotion(page);
+
+      // "?" opens the shortcut sheet, which must be valid markup and take focus.
+      await page.keyboard.press('?');
+      await page.waitForFunction(() =>
+        document.querySelector('catchline-overlay')?.shadowRoot?.querySelector('.cl-help'),
+      );
+      await page.waitForTimeout(300);
+      await scan(page, 'show all shortcut sheet', 'catchline-overlay');
+      await page.keyboard.press('Escape');
+
+      // Enter on a focused "Exit Show all" button leaves Show all (it used to expand an entry).
+      await page.evaluate(() => {
+        const root = document.querySelector('catchline-overlay')?.shadowRoot;
+        root?.querySelector<HTMLElement>('button[aria-label^="Exit Show all"]')?.focus();
+      });
+      await page.keyboard.press('Enter');
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              document.querySelector('catchline-overlay')?.shadowRoot?.querySelector('.cl-rail') !=
+              null,
+          ),
+        )
+        .toBe(false);
+    });
+
     test(`cards: no footnote, many-to-one expanded, and the welcome specimen`, async ({
       context,
       extensionId,

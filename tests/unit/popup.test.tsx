@@ -60,7 +60,7 @@ describe('popup (AC-F10.2 states)', () => {
     input = base();
     render(<App />);
     expect(screen.getByRole('heading', { name: '3 catches: $35 + 36 months hidden' })).toBeTruthy();
-    expect(screen.getByText('hidden', { exact: false })).toBeTruthy();
+    expect(document.querySelector('.pop-detail')?.textContent).toContain('hidden');
     // One term per row, categories in the label column.
     expect(screen.getByText('Money')).toBeTruthy();
     expect(screen.getByText('Time')).toBeTruthy();
@@ -111,7 +111,7 @@ describe('popup (AC-F10.2 states)', () => {
   it('toggles the site from the header', () => {
     input = base();
     render(<App />);
-    fireEvent.click(screen.getByRole('switch', { name: 'Catchline on carrier.example' }));
+    fireEvent.click(screen.getByRole('switch', { name: /Catchline on carrier\.example/ }));
     expect(spies.toggleSite).toHaveBeenCalledWith(false);
   });
 

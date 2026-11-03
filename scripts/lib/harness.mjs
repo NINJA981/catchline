@@ -8,7 +8,7 @@ import { join, resolve } from 'node:path';
 import { chromium } from '@playwright/test';
 
 export const ROOT = resolve(import.meta.dirname, '..', '..');
-const EXT = join(ROOT, '.output', 'chrome-mv3');
+const EXT = process.env.CATCHLINE_EXT_DIR ?? join(ROOT, '.output', 'chrome-mv3');
 const FIXTURES = join(ROOT, 'tests', 'fixtures', 'synthetic');
 
 export async function startServer() {

@@ -2,9 +2,10 @@
 
 import { extractChips } from './extract/index';
 import { guessFamily } from './family';
-import { collectCandidates } from './match/candidates';
-import { matchMarkers, type MatchedFootnote } from './match/index';
-import { scanMarkers } from './scan/markers';
+import { collectCandidatesSteps } from './match/candidates';
+import { matchMarkersSteps, type MatchedFootnote } from './match/index';
+import { scanMarkersSteps, scanScopes } from './scan/markers';
+import { drain, runSliced, type SliceOptions, type Steps } from './steps';
 import type { Catch, Family, StyleOracle } from './types';
 
 export interface Analysis {
@@ -19,6 +20,8 @@ export interface AnalyzeOptions {
   family?: Family | 'unknown';
   /** Scan this subtree instead of the whole body (the welcome page specimen). */
   root?: Element;
+  /** Pages over this many text nodes scan only main, footer and legal containers. Default 15,000. */
+  maxTextNodes?: number;
 }
 
 // Price, rate or percentage in the claim itself: "$0/mo", "0% intro APR", "50% off".
@@ -29,16 +32,39 @@ export function analyze(
   oracle: StyleOracle,
   options: AnalyzeOptions = {},
 ): Analysis {
+  return drain(analyzeSteps(doc, oracle, options));
+}
+
+/** `analyze` in time slices: hands the thread back every few milliseconds (ADR 0001 section 3). */
+export function analyzeSliced(
+  doc: Document,
+  oracle: StyleOracle,
+  slice: SliceOptions,
+  options: AnalyzeOptions = {},
+): Promise<Analysis> {
+  return runSliced(analyzeSteps(doc, oracle, options), slice);
+}
+
+export function* analyzeSteps(
+  doc: Document,
+  oracle: StyleOracle,
+  options: AnalyzeOptions = {},
+): Steps<Analysis> {
   const root = (options.root ?? doc.body) as Element | null;
   if (!root) return { family: 'unknown', catches: [], footnotes: new Map() };
   const family = options.family ?? guessFamily(root.textContent).family;
-  const markers = scanMarkers(root, { family });
+  const scopes = scanScopes(root, options.maxTextNodes);
+  yield;
+  const markers = yield* scanMarkersSteps(root, { family, ...(scopes ? { scopes } : {}) });
   if (markers.length === 0) return { family, catches: [], footnotes: new Map() };
-  const index = collectCandidates(root, oracle);
-  const { matches, footnotes } = matchMarkers(markers, index);
+  yield;
+  const index = yield* collectCandidatesSteps(root, oracle, scopes);
+  yield;
+  const { matches, footnotes } = yield* matchMarkersSteps(markers, index);
 
   const catches: Catch[] = [];
   for (const marker of markers) {
+    yield;
     const match = matches.get(marker.id);
     if (!match) continue;
     const fn = match.footnoteId ? footnotes.get(match.footnoteId) : undefined;

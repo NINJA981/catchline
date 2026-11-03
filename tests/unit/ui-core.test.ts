@@ -19,6 +19,7 @@ import {
   buildRollup,
   segmentText,
   splitFigures,
+  ringBox,
   tetherCurve,
   wrapLines,
   SHARE,
@@ -101,6 +102,28 @@ describe('tether geometry', () => {
     const v = tetherCurve({ x: 0, y: 0 }, { x: 0, y: 100 }, 'below');
     expect(v.c1.x).toBe(0);
     expect(v.c2.x).toBe(0);
+  });
+
+  it('keeps the control points between the endpoints when the card sits just below the claim', () => {
+    const b = tetherCurve({ x: 0, y: 0 }, { x: 100, y: 20 }, 'below');
+    expect(b.c1.y).toBeGreaterThanOrEqual(0);
+    expect(b.c1.y).toBeLessThanOrEqual(20);
+    expect(b.c2.y).toBeGreaterThanOrEqual(0);
+    expect(b.c2.y).toBeLessThanOrEqual(20);
+    const up = tetherCurve({ x: 0, y: 0 }, { x: 100, y: -20 }, 'above');
+    expect(up.c1.y).toBeLessThanOrEqual(0);
+    expect(up.c1.y).toBeGreaterThanOrEqual(-20);
+    expect(up.c2.y).toBeLessThanOrEqual(0);
+    expect(up.c2.y).toBeGreaterThanOrEqual(-20);
+  });
+
+  it('draws the open ring as a square around a tall glyph box, never a capsule', () => {
+    const tall = ringBox({ left: 100, top: 100, right: 134, bottom: 176 });
+    expect(tall.right - tall.left).toBe(tall.bottom - tall.top);
+    expect((tall.left + tall.right) / 2).toBe(117);
+    const small = ringBox({ left: 10, top: 10, right: 20, bottom: 26 });
+    expect(small.right - small.left).toBe(18);
+    expect(small.bottom - small.top).toBe(20);
   });
 
   it('caps the control offset on long flights so the curve stays on screen', () => {

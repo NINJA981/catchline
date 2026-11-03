@@ -425,6 +425,18 @@
   font-weight: 600;
 }
 
+.popup__count-block {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+/* The product's value statement: 14/22 Ink, figures in mono (SPEC 4.2). */
+.popup__detail {
+  color: var(--cl-ink);
+  font-size: 14px;
+  line-height: 22px;
+}
+
 .popup__list {
   border-top: 1px solid var(--cl-rule);
 }
@@ -439,14 +451,33 @@
 }
 
 .popup__show {
-  margin-right: auto;
+  flex: 1;
+  justify-content: space-between;
   min-height: 32px;
   padding-block: var(--sp-1_5);
+}
+
+.popup__keys {
+  display: inline-flex;
+  gap: var(--sp-1);
+}
+
+/* Keycaps sit inside the primary button, as in the extension popup. */
+.popup__show .key {
+  background: var(--cl-prussian-deep);
+  box-shadow: none;
+  color: var(--cl-on-prussian);
+}
+
+/* Keep a phrase on one line (the hero breaks between phrases, never inside one). */
+.nowrap {
+  white-space: nowrap;
 }
 
 /* Beat: how it works. */
 .steps {
   display: grid;
+  align-items: start;
   gap: var(--sp-8);
   counter-reset: none;
 }
@@ -454,6 +485,7 @@
 .step {
   position: relative;
   display: grid;
+  align-content: start;
   gap: var(--sp-2);
   padding-left: var(--sp-12);
 }
@@ -511,7 +543,7 @@
 
 .how__aside {
   display: grid;
-  gap: var(--sp-6);
+  gap: var(--sp-4);
   margin-top: var(--sp-12);
 }
 
@@ -524,10 +556,6 @@
   box-shadow: var(--cl-shadow-e1);
 }
 
-.how__try {
-  align-self: end;
-}
-
 @media (min-width: 1100px) {
   .how__aside {
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -538,8 +566,9 @@
     grid-column: 1 / span 7;
   }
 
+  /* Under the Accuracy card, left-aligned in the same column, not floating at the far right. */
   .how__try {
-    grid-column: 9 / span 4;
+    grid-column: 1 / span 7;
   }
 }
 

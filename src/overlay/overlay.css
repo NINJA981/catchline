@@ -30,7 +30,10 @@
   left: 0;
   top: 0;
   border-radius: 9999px;
-  box-shadow: 0 0 0 2px var(--cl-prussian);
+  /* Two tones: a Sheet halo outside the Prussian ring so it reads on a dark host page too. */
+  box-shadow:
+    0 0 0 2px var(--cl-prussian),
+    0 0 0 3px var(--cl-sheet);
   pointer-events: none;
 }
 .cl-claimwash {
@@ -73,6 +76,8 @@
   stroke: var(--cl-prussian);
   stroke-width: 1.5;
   stroke-linecap: round;
+  /* A Sheet-coloured edge keeps the line visible on a host page of the opposite lightness. */
+  filter: drop-shadow(0 0 1px var(--cl-sheet));
 }
 .cl-tether-dot {
   fill: var(--cl-prussian);
@@ -326,6 +331,9 @@
   background: var(--cl-ledger-paper);
   box-shadow: 0 0 0 1px var(--cl-rule-strong);
 }
+.cl-entry[data-offscreen='false'] .cl-entry__dot {
+  top: 17px;
+}
 .cl-entry[data-selected='true'] .cl-entry__dot {
   background: var(--cl-prussian);
   box-shadow: 0 0 0 1px var(--cl-prussian);
@@ -378,12 +386,16 @@
 .cl-offsetlabel {
   display: block;
   margin-bottom: 4px;
-  font-family: var(--cl-font-mono);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 16px;
-  font-feature-settings: 'tnum' 1;
   color: var(--cl-ink-subtle);
   white-space: nowrap;
+}
+/* Mono is for figures only: "3,140 px below" yes, "Not on the page" no (The Figures Are Mono Rule). */
+.cl-offsetlabel[data-kind='figure'] {
+  font-family: var(--cl-font-mono);
+  font-size: 11px;
+  font-feature-settings: 'tnum' 1;
 }
 .cl-help {
   position: absolute;
@@ -402,6 +414,12 @@
   gap: 8px 12px;
   margin: 8px 0 0;
   align-items: center;
+}
+.cl-help__row {
+  display: contents;
+}
+.cl-help dt {
+  margin: 0;
 }
 .cl-help dd {
   margin: 0;

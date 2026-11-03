@@ -11,7 +11,7 @@ const CSS = `
 .m{position:absolute;left:0;top:0;display:none;padding:0;margin:0;border:0;border-radius:9999px;background:transparent;pointer-events:auto;cursor:pointer;font:inherit}
 .m::after{content:'';position:absolute;left:var(--ux);right:var(--ux);bottom:var(--uy);height:2px;border-radius:1px;background:var(--cl-prussian);opacity:.4;transition:opacity var(--dur-1) var(--ease-out)}
 .m:hover::after,.m[data-open='true']::after{opacity:1}
-.m:focus-visible{outline:2px solid var(--cl-prussian);outline-offset:2px}
+.m:focus-visible{outline:2px solid var(--cl-prussian);outline-offset:2px;box-shadow:0 0 0 5px var(--cl-sheet)}
 .m::before{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 4px);padding:4px 8px;border-radius:4px;background:var(--cl-ink);color:var(--cl-ledger-paper);font:400 12px/16px var(--cl-font-sans);white-space:nowrap;opacity:0;transform:translate(-50%,2px);pointer-events:none;transition:opacity var(--dur-1) var(--ease-out),transform var(--dur-1) var(--ease-out)}
 @media (hover:hover) and (pointer:fine){.m:hover::before{opacity:1;transform:translate(-50%,0);transition-delay:500ms}}
 .m:focus-visible::before{opacity:1;transform:translate(-50%,0)}
@@ -32,7 +32,11 @@ function interactive(c: Catch): boolean {
   return c.counted || (!c.reference && !c.match.footnoteId);
 }
 
-export function createMarkerLayer(opts: { onOpen: (id: string) => void }): MarkerLayer {
+export function createMarkerLayer(opts: {
+  onOpen: (id: string) => void;
+  /** The pointer or keyboard focus reached a marker: a click is likely, so load the overlay now. */
+  onIntent?: () => void;
+}): MarkerLayer {
   const host = document.createElement('catchline-markers');
   host.setAttribute('data-catchline', '');
   const shadow = host.attachShadow({ mode: 'open' });
@@ -100,6 +104,11 @@ export function createMarkerLayer(opts: { onOpen: (id: string) => void }): Marke
             e.stopPropagation();
             opts.onOpen(id);
           });
+          const intent = () => {
+            opts.onIntent?.();
+          };
+          b.addEventListener('pointerenter', intent, { passive: true });
+          b.addEventListener('focus', intent, { passive: true });
           shadow.appendChild(b);
           buttons.set(id, b);
         }

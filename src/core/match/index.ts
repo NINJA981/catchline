@@ -3,6 +3,7 @@
 import { domPath, shortId } from '../hash';
 import { ESCAPE_PHRASE_RE, leadingKey } from '../scan/glyphs';
 import { collapseWhitespace, tokenOverlap, tokenize, wordCount } from '../text';
+import { drain, type Steps } from '../steps';
 import type { FootnoteBlock, Marker, Match } from '../types';
 import {
   referenceKindOf,
@@ -44,6 +45,14 @@ const MANY_TO_ONE_MIN = 2;
 const DOCUMENT_POSITION_FOLLOWING = 4;
 
 export function matchMarkers(markers: readonly Marker[], index: CandidateIndex): MatchResult {
+  return drain(matchMarkersSteps(markers, index));
+}
+
+/** The same matching as a generator that yields between markers (see steps.ts). */
+export function* matchMarkersSteps(
+  markers: readonly Marker[],
+  index: CandidateIndex,
+): Steps<MatchResult> {
   const matches = new Map<string, Match>();
   const footnotes = new Map<string, MatchedFootnote>();
   const byElement = new Map<Element, Candidate[]>();
@@ -56,6 +65,7 @@ export function matchMarkers(markers: readonly Marker[], index: CandidateIndex):
   }
 
   for (const marker of markers) {
+    yield;
     const claimEl = marker.claimEl.deref();
     if (!claimEl) continue;
     const markerEl = marker.markerEl?.deref() ?? null;

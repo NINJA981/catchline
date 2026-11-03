@@ -343,6 +343,13 @@
   inset: -12px -10px;
 }
 
+/* On touch screens the hit area grows to 44px in both directions without moving the glyph. */
+@media (pointer: coarse) {
+  .marker::after {
+    inset: -14px -19px;
+  }
+}
+
 .marker:hover {
   text-decoration-color: var(--cl-prussian);
 }

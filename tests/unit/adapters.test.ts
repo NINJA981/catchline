@@ -1,6 +1,6 @@
 import { browser } from 'wxt/browser';
 import { applyBadge, BADGE_BACKGROUND, BADGE_TEXT, type BadgeApi } from '../../src/adapters/badge';
-import { topFrameTabId } from '../../src/adapters/sender';
+import { isExtensionPage, topFrameTabId } from '../../src/adapters/sender';
 import {
   buildRollup,
   DEFAULT_SETTINGS,
@@ -95,6 +95,20 @@ describe('message sender', () => {
   ])('rejects %j', (sender) => {
     expect(topFrameTabId(sender)).toBeNull();
   });
+
+  it('tells an extension page from a content script by the sender URL', () => {
+    const origin = 'chrome-extension://abc/';
+    // The popup has no tab; a page opened in a tab does, and its URL is still the extension's.
+    expect(isExtensionPage({ url: 'chrome-extension://abc/popup.html' }, origin)).toBe(true);
+    expect(
+      isExtensionPage({ url: 'chrome-extension://abc/popup.html', tab: { id: 4 } }, origin),
+    ).toBe(true);
+    expect(isExtensionPage({ url: 'https://shop.example/', tab: { id: 4 } }, origin)).toBe(false);
+    expect(isExtensionPage({ url: 'chrome-extension://other/x.html' }, origin)).toBe(false);
+    expect(isExtensionPage({}, origin)).toBe(true);
+    expect(isExtensionPage({ tab: { id: 4 } }, origin)).toBe(false);
+    expect(isExtensionPage(null, origin)).toBe(false);
+  });
 });
 
 describe('settings storage (F11, AC-F11.1)', () => {
@@ -188,14 +202,45 @@ describe('fonts (ADR §5.3)', () => {
     expect(css).not.toMatch(/(^|\})\s*[a-z.#*][^@{]*\{/i); // only @font-face blocks
   });
 
-  it('injects one style element, idempotently', () => {
+  it('falls back to one removable style element when FontFace is unavailable', () => {
     const doc = parse('<html><head></head><body></body></html>');
-    const first = registerFonts(doc, urlFor);
-    const second = registerFonts(doc, urlFor);
-    expect(second).toBe(first);
+    const off = registerFonts(doc, urlFor);
+    const style = doc.getElementById(FONT_STYLE_ID);
+    expect(style?.hasAttribute('data-catchline')).toBe(true);
+    expect(style?.parentElement?.tagName).toBe('HEAD');
+    registerFonts(doc, urlFor);
     expect(doc.querySelectorAll(`#${FONT_STYLE_ID}`)).toHaveLength(1);
-    expect(first.hasAttribute('data-catchline')).toBe(true);
-    expect(first.parentElement?.tagName).toBe('HEAD');
+    off();
+    expect(doc.getElementById(FONT_STYLE_ID)).toBeNull();
+  });
+
+  it('uses the FontFace API when present, so no URL is written into page-readable CSS', () => {
+    const added: string[] = [];
+    class FakeFace {
+      constructor(
+        public family: string,
+        public src: string,
+      ) {}
+      load() {
+        return Promise.resolve(this);
+      }
+    }
+    const fonts = {
+      add: (f: FakeFace) => added.push(f.family),
+      delete: (f: FakeFace) => added.includes(f.family),
+    };
+    vi.stubGlobal('FontFace', FakeFace);
+    try {
+      const doc = parse('<html><head></head><body></body></html>');
+      Object.defineProperty(doc, 'fonts', { value: fonts });
+      const off = registerFonts(doc, urlFor);
+      expect(added).toHaveLength(3);
+      expect(doc.getElementById(FONT_STYLE_ID)).toBeNull();
+      expect(doc.head.innerHTML).not.toContain('chrome-extension://');
+      off();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 
@@ -287,5 +332,47 @@ describe('rescan observer (ADR §3)', () => {
     await vi.advanceTimersByTimeAsync(1000);
     expect(calls.n).toBe(0);
     expect(obs.active).toBe(false);
+  });
+});
+
+describe('rescan observer max wait (fix round 1)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('rescans a page that mutates faster than the debounce, at most maxWaitMs late', async () => {
+    const doc = parse('<html><body><p id="t">x</p></body></html>');
+    const calls: number[] = [];
+    const obs = createRescanObserver(
+      doc.body,
+      () => {
+        calls.push(Date.now());
+        return 0;
+      },
+      { debounceMs: 300, maxWaitMs: 1000 },
+    );
+    const p = doc.getElementById('t') as HTMLElement;
+    for (let i = 0; i < 40; i++) {
+      p.textContent = String(i);
+      await vi.advanceTimersByTimeAsync(100);
+    }
+    expect(calls.length).toBeGreaterThanOrEqual(2);
+    obs.disconnect();
+  });
+
+  it('accepts an async rescan callback', async () => {
+    const doc = parse('<html><body><p id="t">x</p></body></html>');
+    let n = 0;
+    const obs = createRescanObserver(doc.body, () => {
+      n++;
+      return Promise.resolve(0);
+    });
+    (doc.getElementById('t') as HTMLElement).textContent = 'y';
+    await vi.advanceTimersByTimeAsync(400);
+    expect(n).toBe(1);
+    obs.disconnect();
   });
 });

@@ -108,13 +108,9 @@
         <ul class="sample-list" id="sample-list"></ul>
       </details>
 
-      <section
-        class="result"
-        id="result"
-        aria-live="polite"
-        aria-busy="false"
-        aria-label="Results"
-      ></section>
+      <section class="result" id="result" aria-busy="false" aria-label="Results"></section>
+      <!-- Only this short line is announced; the results region itself is not a live region. -->
+      <p class="sr-only" id="result-status" role="status" aria-live="polite"></p>
       <noscript>
         <p class="panel panel--danger t-body">
           The web app needs JavaScript to run the scanner in your browser. Nothing is sent anywhere

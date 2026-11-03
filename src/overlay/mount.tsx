@@ -17,7 +17,7 @@ export interface MountOptions {
 
 export function mountOverlay(bridge: Bridge, opts: MountOptions): OverlayHandle {
   const doc = opts.doc ?? document;
-  if (opts.fonts) registerFonts(doc, bridge.urlFor);
+  const unregisterFonts = opts.fonts ? registerFonts(doc, bridge.urlFor) : null;
 
   const host = doc.createElement('catchline-overlay');
   host.setAttribute('data-catchline', '');
@@ -47,7 +47,16 @@ export function mountOverlay(bridge: Bridge, opts: MountOptions): OverlayHandle 
     offSettings();
     root.unmount();
     host.remove();
+    unregisterFonts?.();
     bridge.overlay = null;
+  };
+  // Claim the bridge before the first commit: a second request that arrives while React is still
+  // mounting parks itself (last wins) instead of mounting a second overlay.
+  bridge.overlay = {
+    dispatch: (req) => {
+      bridge.pending = req;
+    },
+    destroy,
   };
   root.render(<OverlayApp bridge={bridge} rootRef={{ current: rootEl }} onDestroy={destroy} />);
 

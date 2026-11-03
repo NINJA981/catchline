@@ -191,7 +191,10 @@ describe('what gets a hit target and a place in Show all', () => {
 });
 
 describe('fine print region (axe scrollable-region-focusable)', () => {
-  it('a scrolling block is keyboard reachable and named; a short one is left plain', () => {
+  it('a block that overflows is keyboard reachable and named; one that fits is left plain', () => {
+    // happy-dom does no layout, so report an overflowing box.
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(300);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(120);
     const { container, rerender } = render(<FinePrint text="Long offer text" spans={[]} scroll />);
     const scrolling = container.querySelector('[data-testid="fine-print"]');
     expect(scrolling?.getAttribute('tabindex')).toBe('0');
@@ -202,5 +205,11 @@ describe('fine print region (axe scrollable-region-focusable)', () => {
     const plain = container.querySelector('[data-testid="fine-print"]');
     expect(plain?.hasAttribute('tabindex')).toBe(false);
     expect(plain?.hasAttribute('role')).toBe(false);
+    vi.restoreAllMocks();
+    // A scrolling block that fits in its box is not a tab stop.
+    const fits = render(<FinePrint text="Short" spans={[]} scroll />);
+    expect(
+      fits.container.querySelector('[data-testid="fine-print"]')?.hasAttribute('tabindex'),
+    ).toBe(false);
   });
 });

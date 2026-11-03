@@ -279,7 +279,7 @@ export function ShowAll({
               </IconButton>
             </div>
           </div>
-          <div className="cl-hintbar" aria-label="Keyboard shortcuts">
+          <div className="cl-hintbar" role="group" aria-label="Keyboard shortcuts">
             <span>
               <Keys keys={['J']} pressed={pressed} />
               <Keys keys={['K']} pressed={pressed} />
@@ -293,7 +293,7 @@ export function ShowAll({
               <Keys keys={['Esc']} pressed={pressed} />
               Exit
             </span>
-            <span aria-label="Shortcuts">
+            <span>
               <Keys keys={['?']} pressed={pressed} />
               Shortcuts
             </span>
@@ -307,6 +307,7 @@ export function ShowAll({
               <li
                 key={m.id}
                 className="cl-entry"
+                data-offscreen={offsets.get(m.id) !== 'On screen'}
                 data-selected={isSel}
                 data-catch-id={m.id}
                 ref={(el) => {
@@ -315,7 +316,14 @@ export function ShowAll({
                 }}
               >
                 <span className="cl-entry__dot" aria-hidden />
-                <span className="cl-offsetlabel">{offsets.get(m.id)}</span>
+                {offsets.get(m.id) !== 'On screen' && (
+                  <span
+                    className="cl-offsetlabel"
+                    data-kind={offsets.get(m.id) === 'Not on the page' ? 'word' : 'figure'}
+                  >
+                    {offsets.get(m.id)}
+                  </span>
+                )}
                 <button
                   type="button"
                   className="cl-entry__card"
@@ -327,14 +335,16 @@ export function ShowAll({
                   }}
                 >
                   <span className="cl-entry__claim">{m.claimText}</span>
-                  <span className="cl-chips cl-entry__chips">
-                    {m.chips.slice(0, 3).map((c, i) => (
-                      <ChipView key={`${c.kind}-${c.label}-${String(i)}`} chip={c} />
-                    ))}
-                    {m.chips.length > 3 && (
-                      <span className="cl-tag">+{m.chips.length - 3} more</span>
-                    )}
-                  </span>
+                  {!open && (
+                    <span className="cl-chips cl-entry__chips">
+                      {m.chips.slice(0, 3).map((c, i) => (
+                        <ChipView key={`${c.kind}-${c.label}-${String(i)}`} chip={c} />
+                      ))}
+                      {m.chips.length > 3 && (
+                        <span className="cl-tag">+{m.chips.length - 3} more</span>
+                      )}
+                    </span>
+                  )}
                 </button>
                 {open && (
                   <div className="cl-entry__open">
@@ -353,19 +363,33 @@ export function ShowAll({
           })}
         </ol>
         {helpOpen && (
-          <div className="cl-help" role="dialog" aria-label="Shortcuts">
+          <div
+            className="cl-help"
+            role="dialog"
+            aria-label="Shortcuts"
+            tabIndex={-1}
+            ref={(el) => {
+              el?.focus({ preventScroll: true });
+            }}
+          >
             <h3>Shortcuts</h3>
             <dl>
-              <Keys keys={['Alt', 'Shift', 'C']} />
-              <dd>Show all catches on this page</dd>
-              <Keys keys={['J']} />
-              <dd>Next catch</dd>
-              <Keys keys={['K']} />
-              <dd>Previous catch</dd>
-              <Keys keys={['Enter']} />
-              <dd>Expand the selected entry</dd>
-              <Keys keys={['Esc']} />
-              <dd>Exit and restore your place</dd>
+              {(
+                [
+                  [['Alt', 'Shift', 'C'], 'Show all catches on this page'],
+                  [['J'], 'Next catch'],
+                  [['K'], 'Previous catch'],
+                  [['Enter'], 'Expand the selected entry'],
+                  [['Esc'], 'Exit and restore your place'],
+                ] as const
+              ).map(([keys, text]) => (
+                <div key={text} className="cl-help__row">
+                  <dt>
+                    <Keys keys={[...keys]} />
+                  </dt>
+                  <dd>{text}</dd>
+                </div>
+              ))}
             </dl>
           </div>
         )}

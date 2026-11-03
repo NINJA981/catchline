@@ -3,7 +3,8 @@ import { defineConfig } from '@playwright/test';
 // Runs against the production build served by `vite preview` (build first: pnpm test:e2e).
 // The port is unusual on purpose: sibling projects on this machine also preview on 4173 and 4391,
 // and reusing somebody else's server would test the wrong site, so a clash must fail loudly.
-const PORT = 4619;
+// Override with CATCHLINE_SITE_PORT when another session already holds the default.
+const PORT = Number(process.env.CATCHLINE_SITE_PORT ?? 4619);
 
 const FLOWS = ['**/app-*.spec.ts', '**/a11y.spec.ts'];
 

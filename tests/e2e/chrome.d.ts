@@ -2,7 +2,7 @@
 // `worker.evaluate(...)`. The callbacks run in the extension, not in Node, so the global is only a type.
 
 interface E2eStorageArea {
-  get(keys: string | null): Promise<Record<string, unknown>>;
+  get(keys?: string | null): Promise<Record<string, unknown>>;
   set(items: Record<string, unknown>): Promise<void>;
 }
 
@@ -16,6 +16,7 @@ declare const chrome: {
     getTitle(details: { tabId: number }): Promise<string>;
   };
   storage: { local: E2eStorageArea; session: E2eStorageArea };
+  permissions: { contains(query: unknown): Promise<boolean> };
   commands: { getAll(): Promise<{ name?: string }[]> };
   runtime: {
     getManifest(): {

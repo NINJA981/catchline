@@ -2,7 +2,8 @@
 // Visual QA captures (DESIGN_BIBLE section 9.1): the built extension in real Chromium, at 375, 768
 // and 1440 px, light and dark, saved to docs/screenshots/. Run `pnpm build` first.
 //
-//   node scripts/screenshots.mjs [overlay|popup|states|pages|strip|all]
+//   node scripts/screenshots.mjs [overlay|host|popup|states|pages|strip|all]
+//   CATCHLINE_SHOT_DIR=docs/screenshots/fix-r1 node scripts/screenshots.mjs host   (another output folder)
 //
 // Frame strips pause every Web Animation in the overlay's shadow root and seek it, the same way the
 // demo capture will (DESIGN.md "Capture"). Dev tooling only; nothing here ships in the extension.
@@ -12,7 +13,9 @@ import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import { launch, ROOT, startServer, tabIdOf } from './lib/harness.mjs';
 
-const OUT = join(ROOT, 'docs', 'screenshots');
+const OUT = process.env.CATCHLINE_SHOT_DIR
+  ? join(ROOT, process.env.CATCHLINE_SHOT_DIR)
+  : join(ROOT, 'docs', 'screenshots');
 mkdirSync(OUT, { recursive: true });
 const WIDTHS = [
   [375, 812],
@@ -173,6 +176,38 @@ if (want('overlay')) {
   }
 }
 
+if (want('host')) {
+  // A dark, styled host page under a LIGHT operating-system theme: the case where the overlay's
+  // Prussian ring and tether must still read (WCAG 1.4.11). The host is the carrier specimen with a
+  // stylesheet injected for the capture only.
+  const HOST_CSS = `
+    html, body { background: #101820 !important; color: #e8edf2 !important; font: 18px/1.5 system-ui, sans-serif !important; }
+    body { max-width: 760px; margin: 0 auto; padding: 48px 24px; }
+    a { color: #8cc8ee !important; }
+    h1, h2, h3 { color: #ffffff !important; font-family: system-ui, sans-serif !important; }`;
+  for (const [w, ht] of [
+    [1440, 900],
+    [375, 812],
+  ]) {
+    const page = await openFixture('carrier-specimen.html', w, ht, 'light');
+    await page.addStyleTag({ content: HOST_CSS });
+    await page.waitForTimeout(400);
+    // Keyboard focus on the first marker: the focus ring on a dark page.
+    await page.evaluate(() =>
+      document.querySelector('catchline-markers')?.shadowRoot?.querySelector('button')?.focus(),
+    );
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await page.waitForTimeout(200);
+    await shot(page, `host-dark-focus-${String(w)}`);
+    await openOverlay(page, { kind: 'card', id: await firstMarkerId(page) });
+    await waitOverlay(page, '.cl-card');
+    await settle(page);
+    await shot(page, `host-dark-card-${String(w)}`);
+    await page.close();
+  }
+}
+
 if (want('strip')) {
   for (const reduced of [false, true]) {
     const page = await openFixture('carrier-specimen.html', 1440, 800, 'light', reduced);
@@ -252,7 +287,9 @@ if (want('popup')) {
     const id = await tabIdOf(worker, fixture ? srv.origin : 'about:blank');
     const p = await popupAt(id, scheme, init);
     await p.waitForTimeout(wait);
-    await shot(p, `popup-${name}-${scheme}`, { clip: await p.locator('main.pop').boundingBox() });
+    const box = await p.locator('main.pop').boundingBox();
+    console.log(`popup-${name}-${scheme} box ${String(box.width)} x ${String(box.height)}`);
+    await shot(p, `popup-${name}-${scheme}`, { clip: box });
     await p.close();
     await tab.close();
   };

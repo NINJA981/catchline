@@ -26,6 +26,8 @@ const FONT_ASSETS = [
 // No remote code, no CDN fonts, no network: extension pages get a strict CSP.
 export default defineConfig({
   srcDir: 'src',
+  // CATCHLINE_OUT_DIR builds into another folder, so a build can run while a test run still uses .output.
+  ...(process.env.CATCHLINE_OUT_DIR ? { outDir: process.env.CATCHLINE_OUT_DIR } : {}),
   modules: ['@wxt-dev/module-react'],
   manifestVersion: 3,
   vite: () => ({

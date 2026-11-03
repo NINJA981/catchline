@@ -12,6 +12,7 @@ import {
   markerExitPoint,
   pageOffsetLabel,
   placeCard,
+  ringBox,
   tetherCurve,
   type MotionVariant,
   type Side,
@@ -113,9 +114,10 @@ export function CardLayer({
     dotRef.current?.setAttribute('cy', String(exit.y));
     const ring = ringRef.current;
     if (ring) {
-      ring.style.width = `${String(m.right - m.left + 8)}px`;
-      ring.style.height = `${String(Math.max(m.bottom - m.top, 16) + 4)}px`;
-      ring.style.translate = `${String(m.left - 4)}px ${String(m.top - 2)}px`;
+      const rb = ringBox(m);
+      ring.style.width = `${String(rb.right - rb.left)}px`;
+      ring.style.height = `${String(rb.bottom - rb.top)}px`;
+      ring.style.translate = `${String(rb.left)}px ${String(rb.top)}px`;
     }
     const wash = washRef.current;
     if (wash) {

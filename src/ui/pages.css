@@ -76,6 +76,19 @@
 .pop-body--blank {
   min-height: 160px;
 }
+/* Loading reserves the height of a loaded popup (about 525px) so it does not jump on arrival. */
+.pop-body--loading {
+  min-height: 429px;
+}
+.pop-skel-value {
+  justify-self: end;
+}
+.pop-skel-toggle {
+  border-radius: 9999px;
+}
+.pop-showall.cl-skel {
+  flex: 1;
+}
 .pop-count {
   display: flex;
   flex-direction: column;
@@ -92,7 +105,9 @@
   letter-spacing: -0.02em;
 }
 .pop-detail {
-  font-size: 13px;
+  color: var(--cl-ink);
+  font-size: 14px;
+  line-height: 22px;
 }
 .pop-ledger {
   flex: none;
@@ -164,6 +179,7 @@
 .pop-row--skel {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
   gap: 6px;
   cursor: default;
@@ -647,5 +663,20 @@
   }
   .spec-plans {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (forced-colors: active) {
+  .opt-radio input {
+    forced-color-adjust: none;
+    border: 1px solid ButtonText;
+    background: Canvas;
+  }
+  .opt-radio input:checked {
+    background: Highlight;
+    box-shadow: inset 0 0 0 4px Canvas;
+  }
+  .pop-row[data-selected='true']::before {
+    background: Highlight;
   }
 }

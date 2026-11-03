@@ -16,7 +16,8 @@ import {
 } from '@playwright/test';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
-const EXTENSION_PATH = join(ROOT, '.output', 'chrome-mv3');
+// CATCHLINE_EXT_DIR points the suite at another build (a second checkout of the output, or a scratch dir).
+const EXTENSION_PATH = process.env.CATCHLINE_EXT_DIR ?? join(ROOT, '.output', 'chrome-mv3');
 const FIXTURE_DIR = join(ROOT, 'tests', 'fixtures', 'synthetic');
 
 const FILLER =

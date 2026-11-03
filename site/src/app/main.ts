@@ -29,6 +29,7 @@ const sampleBtn = must('#sample-btn', HTMLButtonElement);
 const clearBtn = must('#clear', HTMLButtonElement);
 const fileInput = must('#file', HTMLInputElement);
 const result = must('#result', HTMLElement);
+const resultStatus = must('#result-status', HTMLElement);
 const samplesDetails = must('#samples', HTMLDetailsElement);
 const sampleList = must('#sample-list', HTMLElement);
 const installBtn = must('#install', HTMLButtonElement);
@@ -47,6 +48,14 @@ function figureNodes(text: string): (Node | string)[] {
 function setBusy(busy: boolean): void {
   result.setAttribute('aria-busy', String(busy));
   scanBtn.toggleAttribute('data-busy', busy);
+}
+
+/** One short line for screen readers; the results region itself is not live. */
+function announce(text: string): void {
+  resultStatus.textContent = '';
+  window.setTimeout(() => {
+    resultStatus.textContent = text;
+  }, 20);
 }
 
 function show(...nodes: Node[]): void {
@@ -121,7 +130,7 @@ function errorState(message: string, retry: (() => void) | null): Node {
       icon('triangle-alert'),
       h('h2', { class: 't-h3' }, 'Catchline couldn’t scan that'),
     ),
-    h('p', { class: 't-body prose' }, message),
+    h('p', { class: 't-body prose', id: 'result-error' }, message),
     h(
       'div',
       { class: 'panel__actions' },
@@ -211,7 +220,7 @@ function doneState(scan: ScanResult, label: string): Node {
     { class: 'result__head' },
     h(
       'h2',
-      { class: 'result__summary' },
+      { class: 'result__summary', tabindex: '-1' },
       ...figureNodes(counted.length > 0 ? scan.summary : 'No catches found'),
     ),
     h('p', { class: 't-caption t-subtle' }, label),
@@ -290,6 +299,8 @@ async function run(getRaw: () => Promise<{ raw: string; label: string }>): Promi
   const id = ++runId;
   let skeletonAt = 0;
   setBusy(true);
+  source.removeAttribute('aria-invalid');
+  source.setAttribute('aria-describedby', 'source-note');
   const timer = window.setTimeout(() => {
     if (id !== runId) return;
     skeletonAt = performance.now();
@@ -314,6 +325,9 @@ async function run(getRaw: () => Promise<{ raw: string; label: string }>): Promi
       const node = doneState(scan, label);
       show(node);
       samplesDetails.open = false;
+      announce(scan.analysis.catches.some((c) => c.counted) ? scan.summary : 'No catches found');
+      // Focus follows the new content: the results heading, without scrolling the page.
+      result.querySelector<HTMLElement>('.result__summary')?.focus({ preventScroll: true });
       const top = result.getBoundingClientRect().top;
       if (top > window.innerHeight * 0.6) {
         result.scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' });
@@ -326,7 +340,12 @@ async function run(getRaw: () => Promise<{ raw: string; label: string }>): Promi
         : 'Something went wrong reading that. Try pasting the text of the page instead.';
     await finish(() => {
       show(errorState(message, lastRun));
-      if (e instanceof InputError && e.kind === 'empty') source.focus();
+      announce(message);
+      if (e instanceof InputError && e.kind === 'empty') {
+        source.setAttribute('aria-invalid', 'true');
+        source.setAttribute('aria-describedby', 'source-note result-error');
+        source.focus();
+      }
     });
   }
 }

@@ -19,12 +19,43 @@ import {
   normalizeSymbolRun,
   superscriptToDigits,
 } from './glyphs';
-import { FINE_PRINT_SELECTOR } from './selectors';
+import { FINE_PRINT_SELECTOR, LEGAL_CONTAINER_SELECTOR } from './selectors';
+import { drain } from '../steps';
 
 export interface ScanMarkersOptions {
   family?: Family | 'unknown';
   /** Pages over this many text nodes scan only main, footer and legal containers (ADR §3). */
   maxTextNodes?: number;
+  /** Already-resolved scan scopes (from `scanScopes`); overrides `maxTextNodes`. */
+  scopes?: readonly Element[];
+}
+
+/** Text nodes in one container before a page counts as large. */
+export const DEFAULT_MAX_TEXT_NODES = 15000;
+
+const SCOPE_SELECTOR = `main,[role="main"],footer,[role="contentinfo"],${LEGAL_CONTAINER_SELECTOR}`;
+
+/**
+ * The containers to scan. A page with at most `maxTextNodes` text nodes scans as a whole (`null`);
+ * a larger one scans only its outermost main, footer and legal containers, so a 45,000-element
+ * catalogue does not cost a second of main-thread time (ADR 0001 section 3). A large page with no
+ * such container still scans as a whole.
+ */
+export function scanScopes(
+  root: Element,
+  maxTextNodes: number = DEFAULT_MAX_TEXT_NODES,
+): Element[] | null {
+  const doc = root.ownerDocument;
+  const walker = doc.createTreeWalker(root, 4 /* SHOW_TEXT */);
+  let count = 0;
+  while (walker.nextNode()) {
+    count++;
+    if (count > maxTextNodes) break;
+  }
+  if (count <= maxTextNodes) return null;
+  const found = Array.from(root.querySelectorAll(SCOPE_SELECTOR));
+  const outer = found.filter((el) => !found.some((o) => o !== el && o.contains(el)));
+  return outer.length > 0 ? outer : null;
 }
 
 interface RawMarker {
@@ -46,8 +77,17 @@ const EMPHASIS_PAIR = /(?:^|\s)\*[^\s*][^*\n]{0,80}?[^\s*]\*(?=\s|[.,;:!?)]|$)/g
 
 /** Find every footnote marker in `root` (normally document.body). */
 export function scanMarkers(root: Element, options: ScanMarkersOptions = {}): Marker[] {
+  return drain(scanMarkersSteps(root, options));
+}
+
+/** The same scan as a generator that yields between small units of work (see steps.ts). */
+export function* scanMarkersSteps(
+  root: Element,
+  options: ScanMarkersOptions = {},
+): Generator<void, Marker[]> {
   const raws: RawMarker[] = [];
-  walk(root, raws);
+  const scopes = options.scopes ?? scanScopes(root, options.maxTextNodes);
+  yield* walk(scopes ?? [root], raws);
 
   const family = options.family ?? 'unknown';
   const markers: Marker[] = [];
@@ -55,6 +95,7 @@ export function scanMarkers(root: Element, options: ScanMarkersOptions = {}): Ma
   const symbolBlocks = new Set<Element>();
 
   for (const raw of raws) {
+    yield;
     const block = claimBlockFor(raw.locator);
     if (!block) continue;
     if (raw.glyph === 'phrase' && symbolBlocks.has(block)) continue;
@@ -86,20 +127,23 @@ export function scanMarkers(root: Element, options: ScanMarkersOptions = {}): Ma
     .map((m, i) => ({ ...m, ordinal: i }));
 }
 
-function walk(root: Element, out: RawMarker[]): void {
+function* walk(roots: readonly Element[], out: RawMarker[]): Generator<void> {
   // Iterative DFS in document order; children pushed in reverse.
-  const stack: Node[] = [root];
+  const rootSet = new Set<Node>(roots);
+  const stack: Node[] = [...roots].reverse();
+  let visited = 0;
   while (stack.length) {
     const node = stack.pop();
     if (!node) break;
+    if (++visited % 64 === 0) yield;
     if (node.nodeType === 3) {
       scanText(node as Text, out);
       continue;
     }
     if (node.nodeType !== 1) continue;
     const el = node as Element;
-    if (el !== root && (isExcludedElement(el) || isHiddenByAttribute(el))) continue;
-    if (el !== root && el.matches(FINE_PRINT_SELECTOR)) continue;
+    if (!rootSet.has(el) && (isExcludedElement(el) || isHiddenByAttribute(el))) continue;
+    if (!rootSet.has(el) && el.matches(FINE_PRINT_SELECTOR)) continue;
     if (el.tagName === 'SUP') {
       scanSup(el, out);
       continue;

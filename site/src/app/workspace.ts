@@ -171,6 +171,17 @@ export function createWorkspace(opts: WorkspaceOptions): Workspace {
     tether.svg.removeAttribute('hidden');
   }
 
+  function revealInline(claimBlock: HTMLElement, card: HTMLElement): void {
+    const margin = 16;
+    const cardBottom = card.getBoundingClientRect().bottom;
+    const overflow = cardBottom - (window.innerHeight - margin);
+    if (overflow <= 0) return;
+    const room = claimBlock.getBoundingClientRect().top - 72;
+    const by = Math.min(overflow, Math.max(0, room));
+    // Instant: the flight reads live positions, so the page must not move under it.
+    if (by > 0) window.scrollBy({ top: by, behavior: 'auto' });
+  }
+
   function clearOpenState(): void {
     if (!current) return;
     markerEls.get(current.c.marker.id)?.setAttribute('aria-expanded', 'false');
@@ -297,6 +308,9 @@ export function createWorkspace(opts: WorkspaceOptions): Workspace {
       claimBlock.classList.add('rd--open');
       footnoteBlock?.classList.add('ghost');
       place();
+      // On a phone the card opens under the claim, often below the fold: bring it into view
+      // (never scrolling the claim itself off the top), so a tap visibly does something.
+      if (!wide.matches) revealInline(claimBlock, view.el);
       opts.onSelect(id);
 
       const fine = finePrintFor(c, scan.analysis);
@@ -329,7 +343,11 @@ export function createWorkspace(opts: WorkspaceOptions): Workspace {
       void moment.finished.then(() => {
         if (current?.c.marker.id === id && via !== 'key') view.el.focus({ preventScroll: true });
       });
-      if (via === 'key') moment.finish();
+      if (via === 'key') {
+        moment.finish();
+        // J and K swap the card; focus stays on something real (the marker) for screen readers.
+        if (document.activeElement === document.body) markerBtn.focus({ preventScroll: true });
+      }
     },
     close(returnFocus) {
       moment?.finish();

@@ -88,17 +88,27 @@ function PopupShell({ popup, view }: { popup: PopupModel; view: PopupView }) {
             {truncateMiddle(host, 26)}
           </span>
         )}
+        {view.kind === 'loading' && (
+          <span className="pop-site" aria-hidden>
+            <Skeleton h={16} w={64} />
+            <Skeleton h={18} w={32} className="pop-skel-toggle" />
+          </span>
+        )}
         {toggleable && (
           <label className="pop-site">
             <span className="cl-caption cl-muted">On this site</span>
             <Toggle
               checked={enabledOnSite}
               onChange={popup.toggleSite}
-              label={`Catchline on ${host}`}
+              label={`On this site: Catchline on ${host}`}
             />
           </label>
         )}
       </header>
+      {/* One persistent live region: the loading-to-result change is announced from here. */}
+      <div className="pop-sr" role="status" aria-live="polite">
+        {announcement(view)}
+      </div>
       <PopupBody popup={popup} view={view} />
       <footer className="pop-foot">
         {canShowAll ? (
@@ -106,6 +116,8 @@ function PopupShell({ popup, view }: { popup: PopupModel; view: PopupView }) {
             Show all on page
             <Keys keys={['Alt', 'Shift', 'C']} />
           </Button>
+        ) : view.kind === 'loading' ? (
+          <Skeleton h={32} className="pop-showall" />
         ) : (
           <span className="pop-spacer" />
         )}
@@ -117,6 +129,19 @@ function PopupShell({ popup, view }: { popup: PopupModel; view: PopupView }) {
   );
 }
 
+function announcement(view: PopupView): string {
+  switch (view.kind) {
+    case 'loading':
+      return 'Scanning this page';
+    case 'success':
+      return rollupSummary(view.rollup);
+    case 'reference-only':
+      return '0 catches';
+    default:
+      return '';
+  }
+}
+
 function PopupBody({ popup, view }: { popup: PopupModel; view: PopupView }): ReactNode {
   switch (view.kind) {
     case 'blank':
@@ -125,13 +150,13 @@ function PopupBody({ popup, view }: { popup: PopupModel; view: PopupView }): Rea
       return <LoadingBody />;
     case 'restricted':
       return (
-        <div className="pop-body" aria-live="polite">
+        <div className="pop-body">
           <Panel icon={<Info size={16} strokeWidth={1.5} aria-hidden />}>{view.copy}</Panel>
         </div>
       );
     case 'permission':
       return (
-        <div className="pop-body" aria-live="polite">
+        <div className="pop-body">
           <Panel
             tone="warning"
             icon={<ShieldAlert size={16} strokeWidth={1.5} aria-hidden />}
@@ -148,7 +173,7 @@ function PopupBody({ popup, view }: { popup: PopupModel; view: PopupView }): Rea
       );
     case 'disabled':
       return (
-        <div className="pop-body" aria-live="polite">
+        <div className="pop-body">
           <Panel
             icon={<Info size={16} strokeWidth={1.5} aria-hidden />}
             action={
@@ -168,7 +193,7 @@ function PopupBody({ popup, view }: { popup: PopupModel; view: PopupView }): Rea
       );
     case 'error':
       return (
-        <div className="pop-body" aria-live="polite">
+        <div className="pop-body">
           <Panel
             tone="danger"
             icon={<AlertTriangle size={16} strokeWidth={1.5} aria-hidden />}
@@ -185,7 +210,7 @@ function PopupBody({ popup, view }: { popup: PopupModel; view: PopupView }): Rea
       );
     case 'empty':
       return (
-        <div className="pop-body" aria-live="polite">
+        <div className="pop-body">
           <Panel
             action={
               <Button variant="secondary" onClick={popup.openWelcome}>
@@ -199,7 +224,7 @@ function PopupBody({ popup, view }: { popup: PopupModel; view: PopupView }): Rea
       );
     case 'reference-only':
       return (
-        <div className="pop-body" aria-live="polite">
+        <div className="pop-body">
           <div className="pop-count">
             <h1 className="pop-h">
               <span className="cl-fig">0</span> catches
@@ -218,26 +243,32 @@ function PopupBody({ popup, view }: { popup: PopupModel; view: PopupView }): Rea
   }
 }
 
+/** Boxes at the geometry of the loaded popup, so nothing moves when the data arrives. */
 function LoadingBody() {
   return (
-    <div className="pop-body" aria-busy="true" aria-label="Scanning this page">
+    <div
+      className="pop-body pop-body--loading"
+      role="group"
+      aria-busy="true"
+      aria-label="Scanning this page"
+    >
       <div className="pop-count">
         <Skeleton h={28} w={140} />
-        <Skeleton h={16} w={200} />
+        <Skeleton h={20} w={200} />
       </div>
       <div className="pop-ledger">
         {[0, 1, 2].map((i) => (
           <div key={i} className="pop-lrow">
             <Skeleton h={12} w={72} />
-            <Skeleton h={12} w={120} />
+            <Skeleton h={12} w={120} className="pop-skel-value" />
           </div>
         ))}
       </div>
       <div className="pop-list-wrap">
-        {[0, 1, 2].map((i) => (
+        {[0, 1, 2, 3].map((i) => (
           <div key={i} className="pop-row pop-row--skel">
-            <Skeleton h={16} w="70%" />
-            <Skeleton h={12} w="45%" />
+            <Skeleton h={16} w="60%" />
+            <Skeleton h={12} w="35%" />
           </div>
         ))}
       </div>
@@ -252,14 +283,14 @@ function SuccessBody({ popup, rollup }: { popup: PopupModel; rollup: TabRollup }
   const counted = popup.catches.filter((c) => c.counted);
   const other = popup.catches.filter((c) => !c.counted);
   return (
-    <div className="pop-body" aria-live="polite">
+    <div className="pop-body">
       <div className="pop-count">
         <h1 className="pop-h" aria-label={summary}>
           <span className="cl-fig">{rollup.catches}</span>{' '}
           {rollup.catches === 1 ? 'catch' : 'catches'}
         </h1>
         {detail && (
-          <p className="cl-muted pop-detail">
+          <p className="pop-detail">
             <FigureText text={detail} />
           </p>
         )}

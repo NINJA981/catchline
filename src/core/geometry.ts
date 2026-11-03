@@ -136,6 +136,25 @@ export function markerExitPoint(marker: Rect, side: Side): Point {
   }
 }
 
+/**
+ * The open marker's ring (DESIGN.md: a 2px ring around the glyph, never a pill). A glyph box that is
+ * much taller than it is wide (a line box around a 120px claim) gets a square centred on the glyph
+ * instead of a tall capsule.
+ */
+export function ringBox(marker: Rect): Rect {
+  const w = marker.right - marker.left;
+  const h = Math.max(marker.bottom - marker.top, 16);
+  const cx = (marker.left + marker.right) / 2;
+  const cy = (marker.top + marker.bottom) / 2;
+  let rw = w + 8;
+  let rh = h + 4;
+  if (rh > rw * 1.4) {
+    rw = Math.max(Math.min(w, h) + 8, 20);
+    rh = rw;
+  }
+  return { left: cx - rw / 2, right: cx + rw / 2, top: cy - rh / 2, bottom: cy + rh / 2 };
+}
+
 export interface Bezier {
   p0: Point;
   c1: Point;
@@ -153,10 +172,12 @@ export function tetherCurve(from: Point, to: Point, side: Side): Bezier {
   const off = clamp(dist * 0.4, 12, 180);
   if (side === 'below' || side === 'above') {
     const dir = side === 'below' ? 1 : -1;
+    // Cap by the vertical gap so a card just under the claim never makes the line hook out and back.
+    const vOff = clamp(Math.min(dist * 0.4, Math.abs(to.y - from.y) * 0.5), 6, 180);
     return {
       p0: from,
-      c1: { x: from.x, y: from.y + dir * off },
-      c2: { x: to.x, y: to.y - dir * off },
+      c1: { x: from.x, y: from.y + dir * vOff },
+      c2: { x: to.x, y: to.y - dir * vOff },
       p1: to,
     };
   }

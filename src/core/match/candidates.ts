@@ -11,6 +11,7 @@ import {
   REFERENCE_LIST_SELECTOR,
 } from '../scan/selectors';
 import { collapseWhitespace, wordCount } from '../text';
+import { drain, type Steps } from '../steps';
 import type { FootnoteBlock, StyleOracle } from '../types';
 
 export interface Candidate {
@@ -89,14 +90,32 @@ interface Line {
   supKey: string | null;
 }
 
-export function collectCandidates(root: Element, oracle: StyleOracle): CandidateIndex {
+export function collectCandidates(
+  root: Element,
+  oracle: StyleOracle,
+  scopes?: readonly Element[] | null,
+): CandidateIndex {
+  return drain(collectCandidatesSteps(root, oracle, scopes));
+}
+
+/** The same collection as a generator that yields between elements (see steps.ts). */
+export function* collectCandidatesSteps(
+  root: Element,
+  oracle: StyleOracle,
+  scopes?: readonly Element[] | null,
+): Steps<CandidateIndex> {
   const doc = root.ownerDocument;
   const bodyPx = oracle.fontSizePx(doc.body) ?? 16;
   const candidates: Candidate[] = [];
-  const els = [root, ...Array.from(root.querySelectorAll(BLOCK_SELECTOR))];
+  const els = (scopes ?? [root]).flatMap((s) => [
+    s,
+    ...Array.from(s.querySelectorAll(BLOCK_SELECTOR)),
+  ]);
   const seenText = new Set<string>();
 
+  let visited = 0;
   for (const el of els) {
+    if (++visited % 16 === 0) yield;
     if (isExcludedElement(el) || el.closest('[data-catchline]')) continue;
     const ctx = contextOf(el, oracle, bodyPx);
     const lines = ownLines(el);

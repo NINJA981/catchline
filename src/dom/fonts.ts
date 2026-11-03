@@ -18,14 +18,69 @@ export function fontFaceCss(urlFor: (path: string) => string): string {
   ].join('\n');
 }
 
-/** Idempotent: a second call returns the existing element. */
-export function registerFonts(doc: Document, urlFor: (path: string) => string): HTMLStyleElement {
-  const existing = doc.getElementById(FONT_STYLE_ID);
-  if (existing?.tagName === 'STYLE') return existing as HTMLStyleElement;
-  const style = doc.createElement('style');
-  style.id = FONT_STYLE_ID;
-  style.setAttribute('data-catchline', '');
-  style.textContent = fontFaceCss(urlFor);
-  ((doc.head as HTMLHeadElement | null) ?? doc.documentElement).appendChild(style);
-  return style;
+const registered = new WeakMap<Document, { faces: FontFace[]; refs: number }>();
+
+/**
+ * Registers the private families on the host document and returns a function that removes them.
+ *
+ * The FontFace API is preferred: the extension URL then lives only inside the browser and is never
+ * written into page-readable CSS text, so a page script cannot read a per-install Firefox UUID
+ * (code review fix round 1). Environments without FontFace fall back to one <style> element, which
+ * the returned function removes.
+ */
+export function registerFonts(doc: Document, urlFor: (path: string) => string): () => void {
+  const fdoc = { fonts: (doc as { fonts?: FontFaceSet }).fonts };
+  if (typeof FontFace === 'function' && fdoc.fonts) {
+    let entry = registered.get(doc);
+    if (!entry) {
+      const faces = [
+        new FontFace(
+          'Catchline Schibsted',
+          `url("${urlFor(FONT_FILES.schibsted)}") format("woff2-variations")`,
+          {
+            style: 'normal',
+            weight: '400 900',
+            display: 'swap',
+          },
+        ),
+        new FontFace('Catchline Commit', `url("${urlFor(FONT_FILES.commit400)}") format("woff2")`, {
+          style: 'normal',
+          weight: '400',
+          display: 'swap',
+        }),
+        new FontFace('Catchline Commit', `url("${urlFor(FONT_FILES.commit500)}") format("woff2")`, {
+          style: 'normal',
+          weight: '500',
+          display: 'swap',
+        }),
+      ];
+      for (const f of faces) {
+        fdoc.fonts.add(f);
+        // Failures (a page CSP blocking font-src) fall back to system fonts; nothing to report.
+        f.load().catch(() => undefined);
+      }
+      entry = { faces, refs: 0 };
+      registered.set(doc, entry);
+    }
+    entry.refs += 1;
+    const owned = entry;
+    return () => {
+      owned.refs -= 1;
+      if (owned.refs > 0) return;
+      for (const f of owned.faces) fdoc.fonts?.delete(f);
+      registered.delete(doc);
+    };
+  }
+  let style = doc.getElementById(FONT_STYLE_ID) as HTMLStyleElement | null;
+  if (style?.tagName !== 'STYLE') {
+    style = doc.createElement('style');
+    style.id = FONT_STYLE_ID;
+    style.setAttribute('data-catchline', '');
+    style.textContent = fontFaceCss(urlFor);
+    ((doc.head as HTMLHeadElement | null) ?? doc.documentElement).appendChild(style);
+  }
+  const el = style;
+  return () => {
+    el.remove();
+  };
 }

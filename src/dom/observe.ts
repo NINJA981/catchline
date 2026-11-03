@@ -6,6 +6,11 @@ export interface RescanObserverOptions {
   debounceMs?: number;
   /** Stop observing after this many rescans in a row that found nothing new. ADR: 200. */
   maxIdleBatches?: number;
+  /**
+   * Longest a rescan may be postponed by a page that keeps mutating (a ticker, a carousel). Without
+   * it the debounce is reset by every batch and such a page is never rescanned. Default 2000 ms.
+   */
+  maxWaitMs?: number;
   /** Mutations inside nodes this returns true for are ignored (Catchline's own UI). */
   ignore?: (node: Node) => boolean;
 }
@@ -23,27 +28,35 @@ export interface RescanObserver {
  */
 export function createRescanObserver(
   root: Node,
-  onRescan: () => number,
+  onRescan: () => number | Promise<number>,
   options: RescanObserverOptions = {},
 ): RescanObserver {
   const debounceMs = options.debounceMs ?? 300;
   const maxIdle = options.maxIdleBatches ?? 200;
+  const maxWait = options.maxWaitMs ?? 2000;
   const ignore = options.ignore ?? defaultIgnore;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let firstAt = 0;
   let idle = 0;
   let active = false;
 
+  const settle = (found: number) => {
+    idle = found > 0 ? 0 : idle + 1;
+    if (idle >= maxIdle) stop();
+  };
   const run = () => {
     timer = null;
     const found = onRescan();
-    idle = found > 0 ? 0 : idle + 1;
-    if (idle >= maxIdle) stop();
+    if (typeof found === 'number') settle(found);
+    else void found.then(settle, () => undefined);
   };
 
   const observer = new MutationObserver((records) => {
     if (!records.some((r) => !ignore(r.target))) return;
+    const now = Date.now();
     if (timer !== null) clearTimeout(timer);
-    timer = setTimeout(run, debounceMs);
+    else firstAt = now;
+    timer = setTimeout(run, Math.max(0, Math.min(debounceMs, firstAt + maxWait - now)));
   });
 
   const start = () => {

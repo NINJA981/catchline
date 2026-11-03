@@ -62,7 +62,10 @@ export function App() {
             Changes apply as you make them, on every open page within a second.
           </p>
           {loaded ? (
-            <Sections settings={settings} save={save} saveState={saveState} />
+            <>
+              <SaveError state={saveState} />
+              <Sections settings={settings} save={save} />
+            </>
           ) : (
             <OptionsSkeleton />
           )}
@@ -97,9 +100,22 @@ function SaveStatus({ state }: { state: SaveState }) {
   return <span className="opt-status" role="status" />;
 }
 
+/** One alert for a failed save, not one per section. */
+function SaveError({ state }: { state: SaveState }) {
+  if (state.kind !== 'error') return null;
+  return (
+    <div className="opt-err" role="alert">
+      <span>Couldn't save. Your browser's extension storage is full or unavailable.</span>
+      <Button variant="secondary" onClick={state.retry}>
+        Try again
+      </Button>
+    </div>
+  );
+}
+
 function OptionsSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading options">
+    <div role="group" aria-busy="true" aria-label="Loading options">
       {[0, 1, 2].map((i) => (
         <section className="opt-sec" key={i}>
           <Skeleton h={24} w={200} />
@@ -118,42 +134,26 @@ type Save = (patch: Partial<Omit<import('../../core').Settings, 'version'>>) => 
 function Section({
   title,
   lead,
-  saveState,
   children,
   id,
 }: {
   title: string;
   lead: string;
-  saveState?: SaveState;
   children?: ReactNode;
   id: string;
 }) {
   return (
     <section className="opt-sec" aria-labelledby={id}>
-      <h2 id={id}>{title}</h2>
+      <h2 id={id} tabIndex={-1}>
+        {title}
+      </h2>
       <p>{lead}</p>
       {children}
-      {saveState?.kind === 'error' && (
-        <div className="opt-err" role="alert">
-          <span>Couldn't save. Your browser's extension storage is full or unavailable.</span>
-          <Button variant="secondary" onClick={saveState.retry}>
-            Try again
-          </Button>
-        </div>
-      )}
     </section>
   );
 }
 
-function Sections({
-  settings,
-  save,
-  saveState,
-}: {
-  settings: import('../../core').Settings;
-  save: Save;
-  saveState: SaveState;
-}) {
+function Sections({ settings, save }: { settings: import('../../core').Settings; save: Save }) {
   const modelAvailable = onDeviceModelAvailable();
   return (
     <>
@@ -161,7 +161,6 @@ function Sections({
         id="run"
         title="Where Catchline runs"
         lead="Scanning happens in your browser. Nothing is sent anywhere."
-        saveState={saveState}
       >
         <div className="opt-radio" role="radiogroup" aria-labelledby="run">
           <label>
@@ -197,12 +196,7 @@ function Sections({
         </div>
       </Section>
 
-      <Section
-        id="sites"
-        title="Sites turned off"
-        lead="Catchline does nothing on these sites."
-        saveState={saveState}
-      >
+      <Section id="sites" title="Sites turned off" lead="Catchline does nothing on these sites.">
         {settings.disabledHosts.length === 0 ? (
           <p className="opt-empty">
             No sites turned off. Turn Catchline off for a site from the popup.
@@ -215,7 +209,14 @@ function Sections({
                 <Button
                   variant="ghost"
                   aria-label={`Remove ${h} from the list`}
-                  onClick={() => {
+                  onClick={(e) => {
+                    // The button is about to disappear: hand focus to the next Remove, the
+                    // previous one, or the section heading, so it never drops to the page body.
+                    const li = e.currentTarget.closest('li');
+                    const next = li?.nextElementSibling ?? li?.previousElementSibling;
+                    const target =
+                      next?.querySelector('button') ?? document.getElementById('sites');
+                    target?.focus();
                     save({ disabledHosts: settings.disabledHosts.filter((x) => x !== h) });
                   }}
                 >
@@ -227,12 +228,7 @@ function Sections({
         )}
       </Section>
 
-      <Section
-        id="page"
-        title="On the page"
-        lead="How Catchline shows what it found."
-        saveState={saveState}
-      >
+      <Section id="page" title="On the page" lead="How Catchline shows what it found.">
         <div className="opt-row">
           <div>
             <strong>Mark catches with a thin underline</strong>
@@ -267,7 +263,6 @@ function Sections({
         id="motion"
         title="Motion"
         lead="The first card on a page flies up on its line. Reduced motion fades it in instead."
-        saveState={saveState}
       >
         <div className="opt-ctl">
           <Segmented
@@ -288,7 +283,6 @@ function Sections({
         id="theme"
         title="Theme"
         lead="Applies to the popup, this page and the card on web pages."
-        saveState={saveState}
       >
         <div className="opt-ctl">
           <Segmented
@@ -310,7 +304,6 @@ function Sections({
         id="plain"
         title="Plain-language line"
         lead="An optional one-line summary of a catch, written by a model that runs on this device. Off by default. The chips and the merchant's words never depend on it."
-        saveState={saveState}
       >
         <div className="opt-row">
           <div>
@@ -384,7 +377,7 @@ function Sections({
       <Section
         id="keys"
         title="Keyboard shortcuts"
-        lead="Single keys only work while Catchline has focus, never while you type in a page."
+        lead="Alt Shift C is the keyboard route to every catch on a page. Single keys work only while a card or Show all is open, never while you type in a page."
       >
         <table className="opt-table">
           <tbody>
@@ -394,6 +387,7 @@ function Sections({
                 [['Esc'], 'Close a card, or leave Show all and return to where you were'],
                 [['C'], 'Copy the footnote text from an open card'],
                 [['S'], 'Save the card as an image'],
+                [['I'], 'Copy the card as an image'],
                 [['G'], 'Go to the footnote on the page'],
                 [['J'], 'Next catch in Show all'],
                 [['K'], 'Previous catch in Show all'],

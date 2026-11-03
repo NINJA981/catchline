@@ -219,14 +219,21 @@ catchline/
 
 - **Permissions (Chrome):** `storage`, `scripting`, `activeTab`, host permission `<all_urls>` for
   the every-page scanner (required for the badge rollup; the store listing explains why).
-  `runOn: 'on-click'` (Options) unregisters the scanner and uses `activeTab` only. `commands` for
+  `activeTab` is redundant on Chrome while `<all_urls>` is granted. It stays for Firefox, where host
+  permissions are optional: after a user gesture (toolbar click, shortcut) it grants the tab
+  temporarily even if the user never accepted the host permission. `runOn: 'on-click'` (Options)
+  unregisters the scanner and uses `activeTab` only. `commands` for
   `_execute_action` and `show-all` (Alt+Shift+C suggested).
 - **Firefox:** MV3 build (`manifestVersion: 3` for both targets in `wxt.config.ts`),
   `browser_specific_settings.gecko.id` set. Host permissions are optional on Firefox MV3, so the
   welcome page requests them and the popup shows a "permission needed" state until granted.
 - **SPA navigation:** the scanner listens to `wxt:locationchange` (WXT content-script context) and
   re-scans; the background clears the badge on `tabs.onUpdated` with `status: 'loading'`.
-- **Scan budget:** `requestIdleCallback` chunks of ≤ 8 ms; whole-scan soft cap 50 ms median on corpus
+- **Scan budget (implemented in fix round 1):** the scan is a set of generators (`src/core/steps.ts`)
+  that `yield` between small units of work; `analyzeSliced` hands the thread back every 8 ms
+  (`scheduler.yield`, else `setTimeout 0`) and a second request that arrives mid-scan is coalesced
+  into one more pass. The observer has a 2 s max wait so a page that mutates faster than the
+  300 ms debounce is still rescanned. Original text: `requestIdleCallback` chunks of ≤ 8 ms; whole-scan soft cap 50 ms median on corpus
   pages; observers stop growing after 200 mutation batches with no new markers (re-armed on
   navigation). Pages over 15,000 text nodes scan only `main`, `footer` and legal containers.
 - **Restricted pages** (`chrome://`, store pages, PDF viewer): no injection; popup shows the
@@ -268,11 +275,17 @@ inside shadow roots uses px: Tailwind's `--spacing` is set to `4px` and every ty
 (DESIGN.md). A CI grep fails on `rem` in overlay CSS.
 
 ### 5.3 Fonts
-Chromium ignores `@font-face` declared inside shadow-root stylesheets. `dom/fonts.ts` injects one
-`<style>` into the host document's `<head>` that declares `@font-face` for private family names
-(`"Catchline Schibsted"`, `"Catchline Commit"`) pointing at `browser.runtime.getURL()` woff2 files
+Chromium ignores `@font-face` declared inside shadow-root stylesheets. `dom/fonts.ts` adds
+`FontFace` objects to the host document's `document.fonts` for private family names
+(`"Catchline Schibsted"`, `"Catchline Commit"`), loaded from `browser.runtime.getURL()` woff2 files
 listed in `web_accessible_resources` (matches `<all_urls>`, `use_dynamic_url: true` on Chrome). This
-adds no rules that select host elements. Subset woff2 files: Latin + punctuation + `† ‡ § ¶ ¹²³` and
+adds no rules that select host elements. **Why not a `<style>` element (changed in fix round 1):**
+CSS text in the page's `<head>` is readable by any page script, and on Firefox the URL contains a
+per-install UUID (`moz-extension://<uuid>/...`), a stable identifier that would let a site recognise
+the user. With `FontFace` the URL never appears in page-readable text (the font request itself is
+still visible to the page's CSP reporting, the same exposure as any `web_accessible_resources` load).
+The faces are removed when the overlay is destroyed. A `<style>` element is the fallback only where
+`FontFace` is missing, and it is removed on destroy too. Subset woff2 files: Latin + punctuation + `† ‡ § ¶ ¹²³` and
 currency symbols, target ≤ 40 KB each.
 
 ### 5.4 Geometry
@@ -290,7 +303,7 @@ and cancelled. Timings are in DESIGN.md. Reduced motion skips it entirely.
 `OffscreenCanvas` 2D drawing (not DOM screenshotting): deterministic, fast, no html-to-image
 dependency, works with the bundled fonts via `FontFace` loaded in the extension page context.
 
-## 6. Budgets (enforced by `size-limit` in CI)
+## 6. Budgets (enforced by `scripts/check-size.mjs`)
 
 | Bundle | Budget (gzip) |
 |---|---|
@@ -299,6 +312,19 @@ dependency, works with the bundled fonts via `FontFace` loaded in the extension 
 | `popup` entry | ≤ 90 KB |
 | `options` entry | ≤ 110 KB |
 | Landing initial JS | ≤ 120 KB (bible §11.3 B1) |
+
+Measured at the end of fix round 1 (gzip -6, KiB): scanner 27.7, overlay 134.3, popup entry 137.3
+(its own 3.8, a shared React + motion + UI chunk of about 120, Disclosure 5, CSS 7.4), options entry 132.1.
+None of the four meets the table. `scripts/check-size.mjs` fails the build above a **ceiling** set at
+these sizes (scanner 29, overlay 140, popup 142, options 141) and prints "over target" for the
+distance to the table, so they can no longer grow unnoticed. The budgets above stay the targets.
+The popup and options share a chunk with the overlay UI; moving `motion` and `lucide-react` out of the
+shared controls is the way down. The scanner also carries `@wxt-dev/storage` code that nothing in
+`src/` imports (a transitive import that was not found in this round).
+
+The overlay is loaded ahead of the click: hovering or focusing a marker sends one `openOverlay`
+request with kind `close`, which injects the script and mounts it without showing anything. The first
+card then skips the script compile (150-260 ms click-to-card measured before this change).
 
 Popup first paint ≤ 100 ms; scan ≤ 50 ms median on corpus pages; overlay first open ≤ 80 ms injection
 hop plus flight.

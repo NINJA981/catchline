@@ -4,8 +4,8 @@
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/utils/define-background';
 import { applyBadge, type BadgeApi } from '../adapters/badge';
-import { topFrameTabId } from '../adapters/sender';
-import type { TabRollup } from '../core';
+import { isExtensionPage, topFrameTabId } from '../adapters/sender';
+import { isTabRollup } from '../core';
 import { onMessage, sendToTab } from '../messaging/protocol';
 import type { OverlayRequest } from '../overlay/bridge';
 import { clearTabRollup, getTabRollup, setTabRollup } from '../storage/rollup';
@@ -32,7 +32,32 @@ function dispatchInPage(req: OverlayRequest): boolean | null {
   return false;
 }
 
-async function openOverlay(tabId: number, req: OverlayRequest): Promise<void> {
+/** Shape check for a request that arrived in a message (untrusted input). */
+function isOverlayRequest(v: unknown): v is OverlayRequest {
+  if (!v || typeof v !== 'object') return false;
+  const r = v as { kind?: unknown; id?: unknown };
+  if (r.kind === 'show-all' || r.kind === 'close') return true;
+  return r.kind === 'card' && typeof r.id === 'string' && r.id.length <= 64;
+}
+
+// One injection at a time per tab, so two quick requests cannot both inject the overlay.
+const tabQueue = new Map<number, Promise<void>>();
+
+function openOverlay(tabId: number, req: OverlayRequest): Promise<void> {
+  const prev = tabQueue.get(tabId) ?? Promise.resolve();
+  const next = prev.then(
+    () => injectAndDispatch(tabId, req),
+    () => injectAndDispatch(tabId, req),
+  );
+  const tail = next.catch(() => undefined);
+  tabQueue.set(tabId, tail);
+  void tail.then(() => {
+    if (tabQueue.get(tabId) === tail) tabQueue.delete(tabId);
+  });
+  return next;
+}
+
+async function injectAndDispatch(tabId: number, req: OverlayRequest): Promise<void> {
   const [first] = await browser.scripting.executeScript({
     target: { tabId, frameIds: [0] },
     func: dispatchInPage,
@@ -52,14 +77,21 @@ export default defineBackground(() => {
   onMessage('reportScan', async (data, sender) => {
     const tabId = topFrameTabId(sender);
     if (tabId === null) return;
-    const rollup: TabRollup = { ...data, tabId };
+    const rollup: unknown = { ...data, tabId };
+    if (!isTabRollup(rollup)) return;
     await setTabRollup(rollup);
     const settings = await getSettings();
     await applyBadge(badge, tabId, settings.badge ? rollup : null);
   });
 
   onMessage('openOverlay', async (data, sender) => {
-    const tabId = data.tabId ?? topFrameTabId(sender);
+    if (!isOverlayRequest(data.req)) return;
+    // A content script can only address its own tab; only an extension page (the popup) names one.
+    const named =
+      typeof data.tabId === 'number' && Number.isInteger(data.tabId) ? data.tabId : null;
+    const tabId = isExtensionPage(sender, browser.runtime.getURL('/'))
+      ? (named ?? null)
+      : topFrameTabId(sender);
     if (tabId === null) return;
     try {
       await openOverlay(tabId, data.req);

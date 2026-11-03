@@ -24,8 +24,15 @@ export type {
 export { CHIP_KINDS, FAMILIES } from './types';
 
 // One page scan: markers -> footnotes -> matches -> chips.
-export { analyze, type Analysis, type AnalyzeOptions } from './analyze';
-export { scanMarkers, classifyRun, type ScanMarkersOptions } from './scan/markers';
+export { analyze, analyzeSliced, type Analysis, type AnalyzeOptions } from './analyze';
+export { drain, runSliced, type SliceOptions } from './steps';
+export {
+  scanMarkers,
+  scanScopes,
+  classifyRun,
+  DEFAULT_MAX_TEXT_NODES,
+  type ScanMarkersOptions,
+} from './scan/markers';
 export { collectCandidates, type Candidate, type CandidateIndex } from './match/candidates';
 export { matchMarkers, type MatchedFootnote, type MatchResult } from './match/index';
 export {
@@ -119,6 +126,7 @@ export {
   rectCenter,
   rectHeight,
   rectWidth,
+  ringBox,
   tetherCurve,
   type Bezier,
   type PlaceInput,

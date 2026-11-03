@@ -163,6 +163,10 @@ test.describe('web app and extension agree (same engine, same output)', () => {
         const badge = await badgeOf(worker, tabId);
         const popup = await context.newPage();
         await popup.goto(`chrome-extension://${extensionId}/popup.html?tab=${String(tabId)}`);
+        // The popup shows its loading skeleton first; read the ledger only once it has rendered.
+        await expect(
+          popup.locator('.pop-body:not(.pop-body--blank):not(.pop-body--loading)'),
+        ).toBeVisible();
         const popupLedger =
           ext.length > 0
             ? await popup

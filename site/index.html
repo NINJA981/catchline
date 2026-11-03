@@ -69,7 +69,9 @@
     <main id="main">
       <section class="wrap hero" aria-labelledby="hero-title">
         <div class="hero__copy">
-          <h1 class="t-hero" id="hero-title">The catch, next to the claim.</h1>
+          <h1 class="t-hero" id="hero-title">
+            <span class="nowrap">The catch,</span> <span class="nowrap">next to the claim.</span>
+          </h1>
           <p class="t-lead hero__lead prose">
             Catchline matches every *, † and ¹ on a page to its footnote and lists the fees and
             conditions right next to the claim. Free and open source. Nothing leaves your browser.
@@ -113,7 +115,7 @@
                     id="marker"
                     aria-expanded="true"
                     aria-controls="hero-card"
-                    aria-label="Show the catch for $0 a month"
+                    aria-label="Show the catch for $0 a month, marker *"
                   >
                     *
                   </button>
@@ -241,7 +243,12 @@
               <span class="toggle" aria-hidden="true"><span class="toggle__thumb"></span></span>
             </div>
             <div class="popup__rollup">
-              <p class="t-h2"><span class="fig popup__count">3</span> catches</p>
+              <div class="popup__count-block">
+                <p class="t-h2"><span class="fig popup__count">3</span> catches</p>
+                <p class="popup__detail">
+                  <span class="fig">$35</span> + <span class="fig">36</span> months hidden
+                </p>
+              </div>
               <dl class="ledger">
                 <div class="ledger__row">
                   <dt class="t-ui t-muted">Money</dt>
@@ -291,8 +298,14 @@
               </li>
             </ul>
             <div class="popup__foot">
-              <span class="btn btn--primary popup__show">Show all on page</span>
-              <span class="key">Alt</span><span class="key">Shift</span><span class="key">C</span>
+              <span class="btn btn--primary popup__show"
+                >Show all on page
+                <span class="popup__keys"
+                  ><span class="key">Alt</span><span class="key">Shift</span
+                  ><span class="key">C</span></span
+                ></span
+              >
+              <span class="btn btn--ghost">Options</span>
             </div>
           </div>
           <figcaption class="t-caption t-subtle checked__caption">

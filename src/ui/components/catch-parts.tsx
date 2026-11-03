@@ -10,7 +10,7 @@ import {
   Repeat,
   Check,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import {
   MAX_VISIBLE_CHIPS,
   segmentText,
@@ -81,16 +81,18 @@ export function ChipList({ chips }: { chips: readonly Pick<Chip, 'kind' | 'label
         </span>
       ))}
       {more > 0 && (
-        <button
-          type="button"
-          className="cl-chip cl-chip--more"
-          onClick={() => {
-            setExpanded(true);
-          }}
-          aria-label={`Show ${String(more)} more terms (of ${String(chips.length)}; the first ${String(MAX_VISIBLE_CHIPS)} are shown)`}
-        >
-          +{more} more
-        </button>
+        <span role="listitem" style={{ display: 'contents' }}>
+          <button
+            type="button"
+            className="cl-chip cl-chip--more"
+            onClick={() => {
+              setExpanded(true);
+            }}
+            aria-label={`Show ${String(more)} more terms (of ${String(chips.length)}; the first ${String(MAX_VISIBLE_CHIPS)} are shown)`}
+          >
+            +{more} more
+          </button>
+        </span>
       )}
     </div>
   );
@@ -130,12 +132,32 @@ export function FinePrint({
   children?: ReactNode;
 }) {
   const parts = segmentText(text, spans);
+  const ref = useRef<HTMLDivElement>(null);
+  // A scrolling region must be reachable by keyboard (axe scrollable-region-focusable), but only
+  // when it actually overflows: a short note should not add a tab stop to every card.
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!scroll || !el) return;
+    const measure = () => {
+      setOverflows(el.scrollHeight > el.clientHeight + 1);
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+    };
+  }, [scroll, text]);
   return (
     <div
+      ref={ref}
       className={cn('cl-fine', scroll && 'cl-fine--scroll')}
       data-testid="fine-print"
-      // A scrolling region must be reachable by keyboard (axe scrollable-region-focusable).
-      {...(scroll ? { tabIndex: 0, role: 'group', 'aria-label': 'Offer details' } : {})}
+      {...(scroll && overflows
+        ? { tabIndex: 0, role: 'group', 'aria-label': 'Offer details' }
+        : {})}
     >
       {parts.map((p, i) =>
         p.mark ? <mark key={i}>{p.text}</mark> : <span key={i}>{p.text}</span>,

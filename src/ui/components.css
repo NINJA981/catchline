@@ -530,3 +530,55 @@
 [data-motion='reduce'] .cl-disclose svg {
   transition-duration: 0.01ms;
 }
+
+/*
+ * Windows High Contrast / forced colors. Shadows and backgrounds are dropped there, so every state
+ * that was carried by a fill or a ring gets a system-colour border or fill instead.
+ */
+@media (forced-colors: active) {
+  .cl-btn,
+  .cl-iconbtn {
+    border: 1px solid ButtonText;
+  }
+  .cl-btn--ghost {
+    border-color: transparent;
+  }
+  .cl-btn--primary {
+    forced-color-adjust: none;
+    border-color: ButtonText;
+    background: ButtonText;
+    color: ButtonFace;
+  }
+  .cl-btn:disabled,
+  .cl-btn[aria-disabled='true'] {
+    border-color: GrayText;
+    color: GrayText;
+  }
+  .cl-toggle {
+    forced-color-adjust: none;
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+  }
+  .cl-toggle__thumb {
+    background: ButtonText;
+  }
+  .cl-toggle[aria-checked='true'] {
+    border-color: Highlight;
+    background: Highlight;
+  }
+  .cl-toggle[aria-checked='true'] .cl-toggle__thumb {
+    background: HighlightText;
+  }
+  .cl-seg {
+    border: 1px solid ButtonText;
+  }
+  .cl-seg button {
+    border: 1px solid transparent;
+  }
+  .cl-seg button[aria-checked='true'] {
+    forced-color-adjust: none;
+    border-color: ButtonText;
+    background: Highlight;
+    color: HighlightText;
+  }
+}
